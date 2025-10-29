@@ -22,8 +22,13 @@ const HeroSection = () => {
           {/* Logo placeholder - will be replaced with actual logo */}
           <div className="flex justify-center mb-8">
             <div className="bg-background/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl animate-float">
-              <h1 className="text-5xl md:text-7xl font-bold text-primary">
-                Butassi Hnos.
+              <h1 className="text-primary leading-none">
+                <span className="block font-brandScript italic text-5xl md:text-7xl">
+                  Butassi
+                </span>
+                <span className="block font-brandSans uppercase tracking-[0.08em] text-xl md:text-3xl mt-1">
+                  HERMANOS
+                </span>
               </h1>
             </div>
           </div>
@@ -35,7 +40,7 @@ const HeroSection = () => {
 
           {/* Subtitle */}
           <p className="text-xl md:text-2xl text-background/95 drop-shadow max-w-2xl mx-auto">
-            Comercialización de cereales y agroquímicos en Río Tercero, Córdoba
+            Comercialización de cereales y agroquímicos en Corralito, Córdoba.
           </p>
 
           {/* CTA Button */}

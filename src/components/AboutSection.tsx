@@ -5,17 +5,17 @@ const AboutSection = () => {
     {
       icon: Wheat,
       title: "Cereales",
-      description: "Comercialización de cereales de alta calidad con trayectoria y confianza en el mercado"
+      description: "Comercialización de cereales de alta calidad con trayectoria y confianza en el mercado."
     },
     {
       icon: Sprout,
       title: "Agroquímicos",
-      description: "Productos fitosanitarios de primera línea para el cuidado y protección de cultivos"
+      description: "Productos fitosanitarios de primera línea para el cuidado y protección de cultivos."
     },
     {
       icon: Users,
       title: "Empresa Familiar",
-      description: "Compromiso y dedicación de generaciones al servicio del campo argentino"
+      description: "Compromiso y dedicación de generaciones al servicio del campo argentino."
     }
   ];
 
@@ -30,7 +30,7 @@ const AboutSection = () => {
             </h2>
             <div className="w-24 h-1 bg-accent mx-auto mb-6 rounded-full"></div>
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-              Somos una empresa familiar de Río Tercero, Córdoba, con una sólida trayectoria 
+              Somos una empresa familiar de Corralito, Córdoba, con una sólida trayectoria
               en la comercialización de cereales y agroquímicos. Nuestro compromiso es brindar 
               servicios de apoyo agrícola de calidad con la confianza y cercanía que nos caracteriza.
             </p>
@@ -69,7 +69,7 @@ const AboutSection = () => {
                 que acompañen el crecimiento de nuestros clientes.
               </p>
               <p className="text-primary font-semibold text-xl">
-                Confianza, calidad y servicio personalizado
+                Confianza, calidad y servicio personalizado.
               </p>
             </div>
           </div>

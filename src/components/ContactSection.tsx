@@ -82,7 +82,7 @@ const ContactSection = () => {
                     <div>
                       <h4 className="font-semibold text-foreground mb-1">Ubicación</h4>
                       <p className="text-muted-foreground">
-                        Río Tercero, Córdoba, Argentina
+                        Corralito, Córdoba, Argentina
                       </p>
                     </div>
                   </div>
@@ -97,7 +97,7 @@ const ContactSection = () => {
                         href="mailto:contacto@butassihnos.com"
                         className="text-primary hover:underline"
                       >
-                        contacto@butassihnos.com
+                        federicobuta51@gmail.com
                       </a>
                     </div>
                   </div>
@@ -109,10 +109,10 @@ const ContactSection = () => {
                     <div>
                       <h4 className="font-semibold text-foreground mb-1">Teléfono</h4>
                       <a 
-                        href="tel:+5493571000000"
+                        href="tel:+5493571327923"
                         className="text-primary hover:underline"
                       >
-                        +54 9 3571 000000
+                        +54 9 3571 327923
                       </a>
                     </div>
                   </div>
@@ -123,7 +123,7 @@ const ContactSection = () => {
                 <h4 className="font-semibold text-foreground mb-3">Horario de Atención</h4>
                 <p className="text-muted-foreground">
                   Lunes a Viernes: 8:00 - 18:00<br />
-                  Sábados: 8:00 - 12:00
+                  Sábados: 15:30 - 18:00
                 </p>
               </div>
             </div>
