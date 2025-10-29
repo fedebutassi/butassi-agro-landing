@@ -1,12 +1,13 @@
-import type { AppProps } from "next/app";
-import { Toaster } from "sonner";
-import "@/styles/globals.css"; // ajustá la ruta si tu CSS global está en otra carpeta
+// src/App.tsx
+import { Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
 
-export default function MyApp({ Component, pageProps }: AppProps) {
+export default function App() {
   return (
-    <>
-      <Component {...pageProps} />
-      <Toaster richColors position="top-right" />
-    </>
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
