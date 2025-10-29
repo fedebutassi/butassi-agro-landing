@@ -1,3 +1,6 @@
+// src/components/ContactSection.tsx
+"use client";
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,17 +9,31 @@ import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import { toast } from "sonner";
 
+type FormData = {
+  nombre: string;
+  email: string;
+  telefono: string;
+  mensaje: string;
+  company?: string; // honeypot
+};
+
 const ContactSection = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     nombre: "",
     email: "",
     telefono: "",
-    mensaje: ""
+    mensaje: "",
+    company: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Honeypot: si viene con valor, no enviamos (probable bot)
+    if (formData.company && formData.company.trim().length > 0) {
+      return;
+    }
+
     // Validación básica
     if (!formData.nombre || !formData.email || !formData.mensaje) {
       toast.error("Por favor completá todos los campos obligatorios");
@@ -28,28 +45,30 @@ const ContactSection = () => {
     const body = encodeURIComponent(
       `Nombre: ${formData.nombre}\n` +
       `Email: ${formData.email}\n` +
-      `Teléfono: ${formData.telefono}\n\n` +
-      `Mensaje:\n${formData.mensaje}`
+      (formData.telefono ? `Teléfono: ${formData.telefono}\n` : "") +
+      `\nMensaje:\n${formData.mensaje}`
     );
-    
-    window.location.href = `mailto:contacto@butassihnos.com?subject=${subject}&body=${body}`;
-    
+
+    // Importante: con mailto no se puede forzar el "From"; será el del cliente del usuario.
+    window.location.href = `mailto:contacto@butassihnos.com.ar?subject=${subject}&body=${body}`;
+
     toast.success("Abriendo tu cliente de correo...");
-    
+
     // Limpiar formulario
     setFormData({
       nombre: "",
       email: "",
       telefono: "",
-      mensaje: ""
+      mensaje: "",
+      company: "",
     });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [e.target.name]: e.target.value
-    });
+    }));
   };
 
   return (
@@ -61,7 +80,7 @@ const ContactSection = () => {
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
               Contacto
             </h2>
-            <div className="w-24 h-1 bg-accent mx-auto mb-6 rounded-full"></div>
+            <div className="w-24 h-1 bg-accent mx-auto mb-6 rounded-full" />
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
               ¿Tenés alguna consulta? Estamos para ayudarte
             </p>
@@ -82,7 +101,7 @@ const ContactSection = () => {
                     <div>
                       <h4 className="font-semibold text-foreground mb-1">Ubicación</h4>
                       <p className="text-muted-foreground">
-                        Río Tercero, Córdoba, Argentina
+                        Corralito, Córdoba, Argentina
                       </p>
                     </div>
                   </div>
@@ -93,11 +112,11 @@ const ContactSection = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold text-foreground mb-1">Email</h4>
-                      <a 
-                        href="mailto:contacto@butassihnos.com"
-                        className="text-primary hover:underline"
+                      <a
+                        href="mailto:contacto@butassihnos.com.ar"
+                        className="text-primary hover:underline break-all"
                       >
-                        contacto@butassihnos.com
+                        contacto@butassihnos.com.ar
                       </a>
                     </div>
                   </div>
@@ -108,11 +127,11 @@ const ContactSection = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold text-foreground mb-1">Teléfono</h4>
-                      <a 
-                        href="tel:+5493571000000"
+                      <a
+                        href="tel:+5493571327923"
                         className="text-primary hover:underline"
                       >
-                        +54 9 3571 000000
+                        +54 9 3571 327923
                       </a>
                     </div>
                   </div>
@@ -123,14 +142,25 @@ const ContactSection = () => {
                 <h4 className="font-semibold text-foreground mb-3">Horario de Atención</h4>
                 <p className="text-muted-foreground">
                   Lunes a Viernes: 8:00 - 18:00<br />
-                  Sábados: 8:00 - 12:00
+                  Sábados: 15:30 - 18:00
                 </p>
               </div>
             </div>
 
             {/* Contact Form */}
             <div className="animate-fade-in-up" style={{ animationDelay: "150ms" }}>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+                {/* honeypot */}
+                <input
+                  type="text"
+                  name="company"
+                  value={formData.company}
+                  onChange={handleChange}
+                  className="hidden"
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+
                 <div>
                   <Label htmlFor="nombre" className="text-foreground">
                     Nombre *
@@ -192,7 +222,7 @@ const ContactSection = () => {
                   />
                 </div>
 
-                <Button type="submit" size="lg" variant="accent" className="w-full">
+                <Button type="submit" size="lg" className="w-full">
                   <Send className="w-4 h-4 mr-2" />
                   Enviar Mensaje
                 </Button>

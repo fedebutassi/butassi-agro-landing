@@ -34,7 +34,7 @@ const Footer = () => {
                 Servicios de apoyo agrícola. Comercialización de cereales y agroquímicos.
               </p>
               <p className="text-primary-foreground/80">
-                Río Tercero, Córdoba, Argentina
+                Corralito, Córdoba, Argentina
               </p>
             </div>
 
