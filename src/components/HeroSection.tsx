@@ -19,17 +19,14 @@ const HeroSection = () => {
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in-up">
-          {/* Logo placeholder - will be replaced with actual logo */}
+          {/* Logo */}
           <div className="flex justify-center mb-8">
             <div className="bg-background/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl animate-float">
-              <h1 className="text-primary leading-none">
-                <span className="block font-brandScript italic text-5xl md:text-7xl">
-                  Butassi
-                </span>
-                <span className="block font-brandSans uppercase tracking-[0.08em] text-xl md:text-3xl mt-1">
-                  HERMANOS
-                </span>
-              </h1>
+              <img 
+                src="/src/assets/butassihnos.png" 
+                alt="Butassi Hnos." 
+                className="h-32 md:h-40 w-auto mx-auto"
+              />
             </div>
           </div>
 
