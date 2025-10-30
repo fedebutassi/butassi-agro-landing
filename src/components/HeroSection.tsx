@@ -22,7 +22,7 @@ const HeroSection = () => {
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in-up">
           {/* Logo */}
           <div className="flex justify-center mb-8">
-            <div className="bg-background/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl animate-float">
+            <div className="p-8 animate-float">
               <img 
                 src={logoImage}
                 alt="Butassi Hnos." 
