@@ -1,5 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
+import logoImage from "@/assets/butassihnos.png";
 
 const HeroSection = () => {
   const scrollToContact = () => {
@@ -23,7 +24,7 @@ const HeroSection = () => {
           <div className="flex justify-center mb-8">
             <div className="bg-background/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl animate-float">
               <img 
-                src="/src/assets/butassihnos.png" 
+                src={logoImage}
                 alt="Butassi Hnos." 
                 className="h-32 md:h-40 w-auto mx-auto"
               />

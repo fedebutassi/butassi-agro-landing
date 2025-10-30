@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logoImage from "@/assets/butassihnos.png";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,9 +27,10 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <img 
-              src="/src/assets/butassihnos.png" 
+              src={logoImage}
               alt="Butassi Hnos." 
-              className="h-12 w-auto animate-fade-in"
+              className="h-12 w-auto animate-fade-in cursor-pointer"
+              onClick={() => scrollToSection("inicio")}
             />
           </div>
 
