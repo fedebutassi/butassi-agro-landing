@@ -50,7 +50,7 @@ const ContactSection = () => {
     );
 
     // Importante: con mailto no se puede forzar el "From"; será el del cliente del usuario.
-    window.location.href = `mailto:contacto@butassihnos.com.ar?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:federicobuta51@gmail.com?subject=${subject}&body=${body}`;
 
     toast.success("Abriendo tu cliente de correo...");
 
