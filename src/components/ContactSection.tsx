@@ -113,10 +113,10 @@ const ContactSection = () => {
                     <div>
                       <h4 className="font-semibold text-foreground mb-1">Email</h4>
                       <a
-                        href="mailto:contacto@butassihnos.com.ar"
+                        href="mailto:federicobuta51@gmail.com"
                         className="text-primary hover:underline break-all"
                       >
-                        contacto@butassihnos.com.ar
+                        federicobuta51@gmail.com
                       </a>
                     </div>
                   </div>
@@ -143,8 +143,8 @@ const ContactSection = () => {
               <div className="bg-muted/50 rounded-xl p-6 border border-border">
                 <h4 className="font-semibold text-foreground mb-3">Horario de Atención</h4>
                 <p className="text-muted-foreground">
-                  Lunes a Viernes: 8:00 - 18:00<br />
-                  Sábados: 15:30 - 18:00
+                  Lunes a Viernes: 8:00 - 18:00<ar />
+                  Sábados: 8:00 - 12:00
                 </p>
               </div>
             </div>
