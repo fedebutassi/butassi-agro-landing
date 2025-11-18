@@ -131,8 +131,8 @@ const ContactSection = () => {
                         href="tel:+5493571327923"
                         className="text-primary hover:underline"
                       >
-                        +54 9 3571 327923
-                        +54 9 3571 319460
+                        +54 9 3571 327923<br />
+                        +54 9 3571 319460<br />
                         +54 9 3571 319461
                       </a>
                     </div>
