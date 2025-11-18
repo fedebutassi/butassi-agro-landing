@@ -132,6 +132,8 @@ const ContactSection = () => {
                         className="text-primary hover:underline"
                       >
                         +54 9 3571 327923
+                        +54 9 3571 319460
+                        +54 9 3571 319460
                       </a>
                     </div>
                   </div>
