@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoImage from "@/assets/butassihnos.png?url";
@@ -26,18 +27,10 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-      setIsMenuOpen(false);
-    }
-  };
-
   const menuItems = [
-    { id: "inicio", label: "Inicio" },
-    { id: "nosotros", label: "Nosotros" },
-    { id: "contacto", label: "Contacto" }
+    { path: "/", label: "Inicio" },
+    { path: "/productos", label: "Productos" },
+    { path: "/contacto", label: "Contacto" }
   ];
 
   return (
@@ -45,25 +38,24 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="flex-shrink-0">
+          <Link to="/" className="flex-shrink-0">
             <img 
               src={logoImage}
               alt="Butassi Hnos." 
               className="h-12 w-auto animate-fade-in cursor-pointer"
-              onClick={() => scrollToSection("inicio")}
             />
-          </div>
+          </Link>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-6">
             {menuItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
+              <Link
+                key={item.path}
+                to={item.path}
                 className="text-foreground hover:text-primary transition-colors duration-300 font-medium"
               >
                 {item.label}
-              </button>
+              </Link>
             ))}
           </div>
 
@@ -83,13 +75,14 @@ const Navbar = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 animate-fade-in">
             {menuItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setIsMenuOpen(false)}
                 className="block w-full text-left px-4 py-3 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors duration-300"
               >
                 {item.label}
-              </button>
+              </Link>
             ))}
           </div>
         )}
