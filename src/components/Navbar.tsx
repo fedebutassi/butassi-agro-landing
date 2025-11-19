@@ -30,6 +30,7 @@ const Navbar = () => {
   const menuItems = [
     { path: "/", label: "Inicio" },
     { path: "/productos", label: "Productos" },
+    { path: "/pizarra", label: "Pizarra" },
     { path: "/contacto", label: "Contacto" }
   ];
 
