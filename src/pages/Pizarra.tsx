@@ -19,12 +19,12 @@ const Pizarra = () => {
               </p>
             </div>
             
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-2xl mx-auto">
               <div className="bg-muted/30 rounded-xl p-4 border border-border">
-                {/* Placeholder para la imagen de 1920x1080 */}
-                <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center">
+                {/* Placeholder para la imagen de 1080x1920 */}
+                <div className="w-full aspect-[9/16] bg-muted rounded-lg flex items-center justify-center">
                   <p className="text-muted-foreground text-center px-4">
-                    Imagen de pizarra (1920x1080)<br />
+                    Imagen de pizarra (1080x1920)<br />
                     <span className="text-sm">Sube tu imagen aquí</span>
                   </p>
                 </div>
