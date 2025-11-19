@@ -25,7 +25,7 @@ const Pizarra = () => {
                 {/* Imagen de pizarra */}
                 <div className="w-full aspect-[9/16] bg-muted rounded-lg overflow-hidden">
                   <img
-                    src="/pizarra1811.png"
+                    src="/pizarra1911.png"
                     alt="Pizarra de Rosario"
                     className="w-full h-full object-cover"
                   />
