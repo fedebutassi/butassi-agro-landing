@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,6 +20,7 @@ type FormData = {
   nombre: string;
   email: string;
   telefono: string;
+  tipoConsulta: string;
   mensaje: string;
   company?: string; // honeypot
 };
@@ -22,6 +30,7 @@ const ContactSection = () => {
     nombre: "",
     email: "",
     telefono: "",
+    tipoConsulta: "",
     mensaje: "",
     company: "",
   });
@@ -46,6 +55,7 @@ const ContactSection = () => {
       `Nombre: ${formData.nombre}\n` +
       `Email: ${formData.email}\n` +
       (formData.telefono ? `Teléfono: ${formData.telefono}\n` : "") +
+      (formData.tipoConsulta ? `Tipo de consulta: ${formData.tipoConsulta}\n` : "") +
       `\nMensaje:\n${formData.mensaje}`
     );
 
@@ -59,6 +69,7 @@ const ContactSection = () => {
       nombre: "",
       email: "",
       telefono: "",
+      tipoConsulta: "",
       mensaje: "",
       company: "",
     });
@@ -207,6 +218,31 @@ const ContactSection = () => {
                     className="mt-2"
                     placeholder="+54 9 3571 000000"
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="tipoConsulta" className="text-foreground">
+                    Tipo de Consulta
+                  </Label>
+                  <Select
+                    value={formData.tipoConsulta}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, tipoConsulta: value }))
+                    }
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Seleccioná una opción" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Compra y venta de cereales">
+                        Compra y venta de cereales
+                      </SelectItem>
+                      <SelectItem value="Pedido de cotización de productos">
+                        Pedido de cotización de productos
+                      </SelectItem>
+                      <SelectItem value="Otra">Otra</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
