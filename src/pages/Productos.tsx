@@ -13,27 +13,34 @@ type ProductItem = {
 };
 
 const Productos = () => {
-  const [producto, setProducto] = useState("");
-  const [cantidad, setCantidad] = useState("");
-  const [productos, setProductos] = useState<ProductItem[]>([]);
+  const [productos, setProductos] = useState<ProductItem[]>([
+    { nombre: "", cantidad: "" },
+  ]);
 
   const whatsappNumber = "5493571327923";
 
-  const handleAgregar = () => {
-    if (!producto.trim() || !cantidad.trim()) return;
-    
-    setProductos((prev) => [...prev, { nombre: producto.trim(), cantidad: cantidad.trim() }]);
-    setProducto("");
-    setCantidad("");
+  const handleAgregarCampo = () => {
+    setProductos((prev) => [...prev, { nombre: "", cantidad: "" }]);
   };
 
   const handleEliminar = (index: number) => {
+    if (productos.length === 1) return;
     setProductos((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleChange = (index: number, field: keyof ProductItem, value: string) => {
+    setProductos((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const productosValidos = productos.filter(
+    (p) => p.nombre.trim() && p.cantidad.trim()
+  );
+
   const generarMensaje = () => {
     let mensaje = "¡Hola! Me gustaría solicitar cotización de los siguientes productos:\n\n";
-    productos.forEach((item, index) => {
+    productosValidos.forEach((item, index) => {
       mensaje += `${index + 1}. ${item.nombre} - Cantidad: ${item.cantidad}\n`;
     });
     mensaje += "\n¡Gracias!";
@@ -71,68 +78,69 @@ const Productos = () => {
                   Agregá los productos que necesitás y envianos tu pedido
                 </p>
 
-                {/* Formulario para agregar productos */}
-                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-4 items-end mb-6">
-                  <div>
-                    <Label htmlFor="producto" className="text-foreground">
-                      Nombre del producto
-                    </Label>
-                    <Input
-                      id="producto"
-                      value={producto}
-                      onChange={(e) => setProducto(e.target.value)}
-                      placeholder="Ej: Glifosato, Atrazina, 2,4-D..."
-                      className="mt-2"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cantidad" className="text-foreground">
-                      Cantidad
-                    </Label>
-                    <Input
-                      id="cantidad"
-                      value={cantidad}
-                      onChange={(e) => setCantidad(e.target.value)}
-                      placeholder="Ej: 100 tn"
-                      className="mt-2"
-                    />
-                  </div>
-                  <Button onClick={handleAgregar} size="icon" className="h-10 w-10">
-                    <Plus className="w-5 h-5" />
-                  </Button>
+                {/* Campos de productos */}
+                <div className="space-y-4 mb-6">
+                  {productos.map((item, index) => (
+                    <div
+                      key={index}
+                      className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-3 items-end"
+                    >
+                      <div>
+                        {index === 0 && (
+                          <Label htmlFor={`producto-${index}`} className="text-foreground">
+                            Nombre del producto
+                          </Label>
+                        )}
+                        <Input
+                          id={`producto-${index}`}
+                          value={item.nombre}
+                          onChange={(e) => handleChange(index, "nombre", e.target.value)}
+                          placeholder="Ej: Glifosato, Atrazina, 2,4-D..."
+                          className={index === 0 ? "mt-2" : ""}
+                        />
+                      </div>
+                      <div>
+                        {index === 0 && (
+                          <Label htmlFor={`cantidad-${index}`} className="text-foreground">
+                            Cantidad (kg o lt)
+                          </Label>
+                        )}
+                        <Input
+                          id={`cantidad-${index}`}
+                          value={item.cantidad}
+                          onChange={(e) => handleChange(index, "cantidad", e.target.value)}
+                          placeholder="Ej: 100 lt, 50 kg"
+                          className={index === 0 ? "mt-2" : ""}
+                        />
+                      </div>
+                      {productos.length > 1 ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEliminar(index)}
+                          className="text-destructive hover:text-destructive/80 h-10 w-10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      ) : (
+                        <div className="w-10" />
+                      )}
+                    </div>
+                  ))}
                 </div>
 
-                {/* Lista de productos agregados */}
-                {productos.length > 0 && (
-                  <div className="border border-border rounded-lg p-4 mb-6 bg-muted/30">
-                    <h3 className="font-semibold text-foreground mb-3">
-                      Productos agregados:
-                    </h3>
-                    <ul className="space-y-2">
-                      {productos.map((item, index) => (
-                        <li
-                          key={index}
-                          className="flex items-center justify-between bg-background rounded-md px-4 py-2"
-                        >
-                          <span className="text-foreground">
-                            <strong>{item.nombre}</strong> - {item.cantidad}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEliminar(index)}
-                            className="text-destructive hover:text-destructive/80"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {/* Botón agregar */}
+                <Button
+                  variant="outline"
+                  onClick={handleAgregarCampo}
+                  className="w-full mb-6"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Agregar otro producto
+                </Button>
 
                 {/* Vista previa del mensaje */}
-                {productos.length > 0 && (
+                {productosValidos.length > 0 && (
                   <div className="border border-border rounded-lg p-4 mb-6 bg-muted/50">
                     <h3 className="font-semibold text-foreground mb-3">
                       Vista previa del mensaje:
@@ -144,7 +152,7 @@ const Productos = () => {
                 )}
 
                 {/* Botón de enviar */}
-                {productos.length > 0 && (
+                {productosValidos.length > 0 && (
                   <Button
                     onClick={handleEnviar}
                     size="lg"
