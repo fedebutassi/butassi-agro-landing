@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Cloud, 
   Droplets, 
@@ -10,24 +11,16 @@ import {
   ExternalLink,
   Sun,
   CloudRain,
-  CloudSun
+  CloudSun,
+  RefreshCw
 } from "lucide-react";
-
-// Placeholder para configuración de API
-const API_CONFIG = {
-  // Reemplazar con tu API key de OpenWeatherMap u otro servicio
-  API_KEY: "TU_API_KEY_AQUI",
-  // Coordenadas aproximadas de Río Tercero, Córdoba
-  LAT: -32.1731,
-  LON: -64.1147,
-  BASE_URL: "https://api.openweathermap.org/data/2.5"
-};
+import { toast } from "sonner";
 
 type WeatherData = {
   temperatura: number;
   sensacionTermica: number;
   humedad: number;
-  condicion: "soleado" | "nublado" | "parcial" | "lluvia";
+  condicion: "soleado" | "nublado" | "parcial" | "lluvia" | "nieve";
   descripcion: string;
 };
 
@@ -45,56 +38,30 @@ type NewsData = {
   fuente: string;
 };
 
-// Función placeholder para fetch de datos climáticos
-const fetchWeatherData = async (): Promise<WeatherData> => {
-  // TODO: Implementar llamada real a la API
-  // Ejemplo de llamada real:
-  // const response = await fetch(
-  //   `${API_CONFIG.BASE_URL}/weather?lat=${API_CONFIG.LAT}&lon=${API_CONFIG.LON}&appid=${API_CONFIG.API_KEY}&units=metric&lang=es`
-  // );
-  // const data = await response.json();
-  // return parseWeatherResponse(data);
+// Función para obtener datos del clima desde el backend
+const fetchWeatherFromAPI = async (): Promise<{ weather: WeatherData; forecast: ForecastData; location: string } | null> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('weather', {
+      body: {
+        lat: -32.1731, // Río Tercero, Córdoba
+        lon: -64.1147
+      }
+    });
 
-  // Datos simulados para demostración
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        temperatura: 24,
-        sensacionTermica: 26,
-        humedad: 58,
-        condicion: "parcial",
-        descripcion: "Parcialmente nublado"
-      });
-    }, 500);
-  });
+    if (error) {
+      console.error('Error fetching weather:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in fetchWeatherFromAPI:', error);
+    return null;
+  }
 };
 
-// Función placeholder para fetch de pronóstico
-const fetchForecastData = async (): Promise<ForecastData> => {
-  // TODO: Implementar llamada real a la API
-  // Ejemplo:
-  // const response = await fetch(
-  //   `${API_CONFIG.BASE_URL}/forecast?lat=${API_CONFIG.LAT}&lon=${API_CONFIG.LON}&appid=${API_CONFIG.API_KEY}&units=metric&lang=es`
-  // );
-  // const data = await response.json();
-  // return parseForecastResponse(data);
-
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        probabilidadLluvia: 35,
-        precipitacion: 12,
-        viento: 18,
-        direccionViento: "SE",
-        presion: 1015
-      });
-    }, 500);
-  });
-};
-
-// Función placeholder para fetch de noticias
+// Función placeholder para fetch de noticias (mantener simulado por ahora)
 const fetchNewsData = async (): Promise<NewsData> => {
-  // TODO: Integrar con API de noticias agrícolas o RSS feed
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
@@ -102,7 +69,7 @@ const fetchNewsData = async (): Promise<NewsData> => {
         resumen: "Los productores de la zona rural de Río Tercero y alrededores reportan condiciones óptimas para el desarrollo del cultivo de soja de primera.",
         fuente: "https://www.infocampo.com.ar"
       });
-    }, 500);
+    }, 300);
   });
 };
 
@@ -123,20 +90,37 @@ const RadarAgroClimatico = () => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [forecast, setForecast] = useState<ForecastData | null>(null);
   const [news, setNews] = useState<NewsData | null>(null);
+  const [location, setLocation] = useState<string>("");
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (showToast = false) => {
+    if (showToast) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+    
     try {
-      const [weatherData, forecastData, newsData] = await Promise.all([
-        fetchWeatherData(),
-        fetchForecastData(),
+      const [apiData, newsData] = await Promise.all([
+        fetchWeatherFromAPI(),
         fetchNewsData()
       ]);
       
-      setWeather(weatherData);
-      setForecast(forecastData);
+      if (apiData) {
+        setWeather(apiData.weather);
+        setForecast(apiData.forecast);
+        setLocation(apiData.location || "Córdoba Rural");
+        if (showToast) {
+          toast.success("Datos actualizados");
+        }
+      } else {
+        if (showToast) {
+          toast.error("Error al obtener datos del clima");
+        }
+      }
+      
       setNews(newsData);
       setLastUpdate(new Date().toLocaleString("es-AR", {
         day: "2-digit",
@@ -147,15 +131,23 @@ const RadarAgroClimatico = () => {
       }));
     } catch (error) {
       console.error("Error al cargar datos:", error);
+      if (showToast) {
+        toast.error("Error al actualizar");
+      }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
+  const handleRefresh = () => {
+    loadData(true);
+  };
+
   useEffect(() => {
-    loadData();
+    loadData(false);
     // Actualizar cada 15 minutos
-    const interval = setInterval(loadData, 15 * 60 * 1000);
+    const interval = setInterval(() => loadData(false), 15 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -164,11 +156,22 @@ const RadarAgroClimatico = () => {
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
         <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-            RADAR AGRO-CLIMÁTICO
-          </h2>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+              RADAR AGRO-CLIMÁTICO
+            </h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="h-8 w-8"
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
           <p className="text-muted-foreground text-sm md:text-base">
-            Zona Rural Centro-Sur de Córdoba, Argentina
+            {location || "Zona Rural Centro-Sur de Córdoba, Argentina"}
           </p>
         </div>
 
