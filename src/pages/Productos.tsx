@@ -117,7 +117,7 @@ const Productos = () => {
             <div className="max-w-2xl mx-auto">
               <div className="bg-card border border-border rounded-xl p-8 shadow-sm">
                 <h2 className="text-2xl font-bold text-foreground text-center mb-2">
-                  Solicita tu cotización de productos sin cargo
+                  Realiza tu pedido de cotización sin cargo
                 </h2>
                 <p className="text-muted-foreground text-center mb-8">
                   Agregá los productos que necesitás y envianos tu pedido
