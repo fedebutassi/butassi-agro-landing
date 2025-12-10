@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +12,10 @@ import {
   Sun,
   CloudRain,
   CloudSun,
-  RefreshCw
+  RefreshCw,
+  Newspaper,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -44,7 +47,7 @@ const fetchWeatherFromAPI = async (): Promise<{ weather: WeatherData; forecast: 
   try {
     const { data, error } = await supabase.functions.invoke('weather', {
       body: {
-        lat: -32.1731, // Río Tercero, Córdoba
+        lat: -32.1731,
         lon: -64.1147
       }
     });
@@ -61,8 +64,8 @@ const fetchWeatherFromAPI = async (): Promise<{ weather: WeatherData; forecast: 
   }
 };
 
-// Función para obtener noticias agropecuarias desde RSS
-const fetchNewsFromAPI = async (): Promise<NewsData | null> => {
+// Función para obtener noticias agropecuarias desde RSS (ahora devuelve array)
+const fetchNewsFromAPI = async (): Promise<NewsData[]> => {
   try {
     const { data, error } = await supabase.functions.invoke('agro-news');
 
@@ -72,18 +75,17 @@ const fetchNewsFromAPI = async (): Promise<NewsData | null> => {
     }
 
     if (data?.noticias && data.noticias.length > 0) {
-      const noticia = data.noticias[0];
-      return {
+      return data.noticias.slice(0, 3).map((noticia: any) => ({
         titulo: noticia.titulo,
         resumen: noticia.resumen,
         fuente: noticia.fuente,
         fuenteNombre: noticia.fuenteNombre,
-      };
+      }));
     }
-    return null;
+    return [];
   } catch (error) {
     console.error('Error in fetchNewsFromAPI:', error);
-    return null;
+    return [];
   }
 };
 
@@ -103,7 +105,8 @@ const WeatherIcon = ({ condicion, className }: { condicion: string; className?: 
 const RadarAgroClimatico = () => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [forecast, setForecast] = useState<ForecastData | null>(null);
-  const [news, setNews] = useState<NewsData | null>(null);
+  const [newsList, setNewsList] = useState<NewsData[]>([]);
+  const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
   const [location, setLocation] = useState<string>("");
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -135,8 +138,8 @@ const RadarAgroClimatico = () => {
         }
       }
       
-      if (newsData) {
-        setNews(newsData);
+      if (newsData.length > 0) {
+        setNewsList(newsData);
       }
       setLastUpdate(new Date().toLocaleString("es-AR", {
         day: "2-digit",
@@ -160,43 +163,64 @@ const RadarAgroClimatico = () => {
     loadData(true);
   };
 
+  const nextNews = useCallback(() => {
+    setCurrentNewsIndex((prev) => (prev + 1) % newsList.length);
+  }, [newsList.length]);
+
+  const prevNews = () => {
+    setCurrentNewsIndex((prev) => (prev - 1 + newsList.length) % newsList.length);
+  };
+
   useEffect(() => {
     loadData(false);
-    // Actualizar cada 15 minutos
     const interval = setInterval(() => loadData(false), 15 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
+  // Auto-rotate news every 6 seconds
+  useEffect(() => {
+    if (newsList.length > 1) {
+      const newsInterval = setInterval(nextNews, 6000);
+      return () => clearInterval(newsInterval);
+    }
+  }, [newsList.length, nextNews]);
+
+  const currentNews = newsList[currentNewsIndex];
+
   return (
-    <section className="py-16 px-4 bg-gradient-to-b from-emerald-900/10 to-background">
+    <section className="py-16 px-4 bg-gradient-to-b from-primary/5 via-accent/5 to-background">
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 animate-fade-in">
           <div className="flex items-center justify-center gap-3 mb-2">
+            <div className="h-1 w-12 bg-gradient-to-r from-primary to-accent rounded-full" />
             <h2 className="text-2xl md:text-3xl font-bold text-foreground">
               RADAR AGRO-CLIMÁTICO
             </h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="h-8 w-8"
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            </Button>
+            <div className="h-1 w-12 bg-gradient-to-r from-accent to-primary rounded-full" />
           </div>
           <p className="text-muted-foreground text-sm md:text-base">
             {location || "Zona Rural Centro-Sur de Córdoba, Argentina"}
           </p>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="mt-2 text-primary hover:text-primary/80 hover:bg-primary/10"
+          >
+            <RefreshCw className={`h-4 w-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
         </div>
 
         {/* Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1: Clima Actual */}
-          <Card className="bg-gradient-to-br from-sky-50 to-white dark:from-sky-950/30 dark:to-background border-sky-200/50 dark:border-sky-800/30 shadow-lg">
+          <Card className="bg-card border-primary/20 shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-primary to-secondary" />
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-sky-800 dark:text-sky-300">
+              <CardTitle className="text-lg flex items-center gap-2 text-primary">
                 <Thermometer className="h-5 w-5" />
                 Clima Actual
               </CardTitle>
@@ -220,16 +244,16 @@ const RadarAgroClimatico = () => {
                     </div>
                     <WeatherIcon 
                       condicion={weather.condicion} 
-                      className="h-16 w-16 text-sky-500"
+                      className="h-16 w-16 text-accent"
                     />
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <Droplets className="h-4 w-4 text-sky-600" />
+                    <Droplets className="h-4 w-4 text-secondary" />
                     <span className="text-muted-foreground">
                       Humedad: <strong className="text-foreground">{weather.humedad}%</strong>
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground capitalize">
+                  <p className="text-xs text-muted-foreground capitalize bg-primary/5 px-2 py-1 rounded">
                     {weather.descripcion}
                   </p>
                 </div>
@@ -238,9 +262,10 @@ const RadarAgroClimatico = () => {
           </Card>
 
           {/* Card 2: Pronóstico 24h */}
-          <Card className="bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/30 dark:to-background border-emerald-200/50 dark:border-emerald-800/30 shadow-lg">
+          <Card className="bg-card border-secondary/20 shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-secondary to-primary" />
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
+              <CardTitle className="text-lg flex items-center gap-2 text-secondary">
                 <Cloud className="h-5 w-5" />
                 Pronóstico 24h
               </CardTitle>
@@ -254,27 +279,27 @@ const RadarAgroClimatico = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between p-2 rounded bg-secondary/5">
                     <div className="flex items-center gap-2 text-sm">
-                      <CloudRain className="h-4 w-4 text-emerald-600" />
+                      <CloudRain className="h-4 w-4 text-secondary" />
                       <span className="text-muted-foreground">Prob. Lluvia:</span>
                     </div>
                     <span className="font-semibold text-foreground">
                       {forecast.probabilidadLluvia}% ({forecast.precipitacion}mm)
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between p-2 rounded bg-secondary/5">
                     <div className="flex items-center gap-2 text-sm">
-                      <Wind className="h-4 w-4 text-emerald-600" />
+                      <Wind className="h-4 w-4 text-secondary" />
                       <span className="text-muted-foreground">Viento:</span>
                     </div>
                     <span className="font-semibold text-foreground">
                       {forecast.viento} km/h {forecast.direccionViento}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between p-2 rounded bg-secondary/5">
                     <div className="flex items-center gap-2 text-sm">
-                      <Gauge className="h-4 w-4 text-emerald-600" />
+                      <Gauge className="h-4 w-4 text-secondary" />
                       <span className="text-muted-foreground">Presión:</span>
                     </div>
                     <span className="font-semibold text-foreground">
@@ -286,47 +311,89 @@ const RadarAgroClimatico = () => {
             </CardContent>
           </Card>
 
-          {/* Card 3: Noticia Relevante */}
-          <Card className="bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/30 dark:to-background border-amber-200/50 dark:border-amber-800/30 shadow-lg">
+          {/* Card 3: Noticias Agro Carrusel */}
+          <Card className="bg-card border-accent/30 shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-accent to-accent/60" />
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-amber-800 dark:text-amber-300">
-                <ExternalLink className="h-5 w-5" />
-                Noticia Agro
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2 text-accent-foreground">
+                  <Newspaper className="h-5 w-5 text-accent" />
+                  Noticias Agro
+                </CardTitle>
+                {newsList.length > 1 && (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 hover:bg-accent/20"
+                      onClick={prevNews}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
+                      {currentNewsIndex + 1}/{newsList.length}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 hover:bg-accent/20"
+                      onClick={nextNews}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
-              {loading || !news ? (
+              {loading || newsList.length === 0 ? (
                 <div className="animate-pulse space-y-3">
                   <div className="h-4 bg-muted rounded" />
                   <div className="h-4 bg-muted rounded w-5/6" />
                   <div className="h-8 bg-muted rounded w-1/3 mt-4" />
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-foreground text-sm leading-tight line-clamp-2">
-                    {news.titulo}
+              ) : currentNews ? (
+                <div className="space-y-3 min-h-[120px]">
+                  <h3 className="font-semibold text-foreground text-sm leading-tight line-clamp-2 transition-all duration-300">
+                    {currentNews.titulo}
                   </h3>
                   <p className="text-xs text-muted-foreground line-clamp-2">
-                    {news.resumen}
+                    {currentNews.resumen}
                   </p>
                   <div className="flex items-center justify-between mt-2">
-                    {news.fuenteNombre && (
-                      <span className="text-xs text-amber-700 dark:text-amber-400">
-                        {news.fuenteNombre}
+                    {currentNews.fuenteNombre && (
+                      <span className="text-xs text-accent font-medium">
+                        {currentNews.fuenteNombre}
                       </span>
                     )}
                     <Button 
                       variant="outline" 
                       size="sm"
-                      className="text-xs border-amber-300 hover:bg-amber-100 dark:border-amber-700 dark:hover:bg-amber-900/30"
-                      onClick={() => window.open(news.fuente, "_blank")}
+                      className="text-xs border-accent/50 hover:bg-accent/20 hover:border-accent"
+                      onClick={() => window.open(currentNews.fuente, "_blank")}
                     >
                       Leer más
                       <ExternalLink className="ml-1 h-3 w-3" />
                     </Button>
                   </div>
+                  {/* Indicadores de carrusel */}
+                  {newsList.length > 1 && (
+                    <div className="flex justify-center gap-1.5 pt-2">
+                      {newsList.map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setCurrentNewsIndex(idx)}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            idx === currentNewsIndex 
+                              ? 'w-4 bg-accent' 
+                              : 'w-1.5 bg-accent/30 hover:bg-accent/50'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+              ) : null}
             </CardContent>
           </Card>
         </div>
