@@ -36,6 +36,7 @@ type NewsData = {
   titulo: string;
   resumen: string;
   fuente: string;
+  fuenteNombre?: string;
 };
 
 // Función para obtener datos del clima desde el backend
@@ -60,17 +61,30 @@ const fetchWeatherFromAPI = async (): Promise<{ weather: WeatherData; forecast: 
   }
 };
 
-// Función placeholder para fetch de noticias (mantener simulado por ahora)
-const fetchNewsData = async (): Promise<NewsData> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        titulo: "Buenas perspectivas para la cosecha de soja en la región centro",
-        resumen: "Los productores de la zona rural de Río Tercero y alrededores reportan condiciones óptimas para el desarrollo del cultivo de soja de primera.",
-        fuente: "https://www.infocampo.com.ar"
-      });
-    }, 300);
-  });
+// Función para obtener noticias agropecuarias desde RSS
+const fetchNewsFromAPI = async (): Promise<NewsData | null> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('agro-news');
+
+    if (error) {
+      console.error('Error fetching news:', error);
+      throw error;
+    }
+
+    if (data?.noticias && data.noticias.length > 0) {
+      const noticia = data.noticias[0];
+      return {
+        titulo: noticia.titulo,
+        resumen: noticia.resumen,
+        fuente: noticia.fuente,
+        fuenteNombre: noticia.fuenteNombre,
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error in fetchNewsFromAPI:', error);
+    return null;
+  }
 };
 
 const WeatherIcon = ({ condicion, className }: { condicion: string; className?: string }) => {
@@ -105,7 +119,7 @@ const RadarAgroClimatico = () => {
     try {
       const [apiData, newsData] = await Promise.all([
         fetchWeatherFromAPI(),
-        fetchNewsData()
+        fetchNewsFromAPI()
       ]);
       
       if (apiData) {
@@ -121,7 +135,9 @@ const RadarAgroClimatico = () => {
         }
       }
       
-      setNews(newsData);
+      if (newsData) {
+        setNews(newsData);
+      }
       setLastUpdate(new Date().toLocaleString("es-AR", {
         day: "2-digit",
         month: "2-digit",
@@ -287,21 +303,28 @@ const RadarAgroClimatico = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <h3 className="font-semibold text-foreground text-sm leading-tight">
+                  <h3 className="font-semibold text-foreground text-sm leading-tight line-clamp-2">
                     {news.titulo}
                   </h3>
                   <p className="text-xs text-muted-foreground line-clamp-2">
                     {news.resumen}
                   </p>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="mt-2 text-xs border-amber-300 hover:bg-amber-100 dark:border-amber-700 dark:hover:bg-amber-900/30"
-                    onClick={() => window.open(news.fuente, "_blank")}
-                  >
-                    Ver Fuente
-                    <ExternalLink className="ml-1 h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center justify-between mt-2">
+                    {news.fuenteNombre && (
+                      <span className="text-xs text-amber-700 dark:text-amber-400">
+                        {news.fuenteNombre}
+                      </span>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-xs border-amber-300 hover:bg-amber-100 dark:border-amber-700 dark:hover:bg-amber-900/30"
+                      onClick={() => window.open(news.fuente, "_blank")}
+                    >
+                      Leer más
+                      <ExternalLink className="ml-1 h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>
