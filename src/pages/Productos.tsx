@@ -81,7 +81,7 @@ const Productos = () => {
                       id="producto"
                       value={producto}
                       onChange={(e) => setProducto(e.target.value)}
-                      placeholder="Ej: Soja, Maíz, Trigo..."
+                      placeholder="Ej: Glifosato, Atrazina, 2,4-D..."
                       className="mt-2"
                     />
                   </div>
@@ -97,9 +97,8 @@ const Productos = () => {
                       className="mt-2"
                     />
                   </div>
-                  <Button onClick={handleAgregar} className="h-10">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Listo
+                  <Button onClick={handleAgregar} size="icon" className="h-10 w-10">
+                    <Plus className="w-5 h-5" />
                   </Button>
                 </div>
 
