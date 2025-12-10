@@ -5,12 +5,20 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Send, Trash2, Mail, MessageCircle, Check } from "lucide-react";
 import { toast } from "sonner";
 
 type ProductItem = {
   nombre: string;
   cantidad: string;
+  unidad: "lts" | "kgs";
 };
 
 type ClienteData = {
@@ -21,7 +29,7 @@ type ClienteData = {
 
 const Productos = () => {
   const [productos, setProductos] = useState<ProductItem[]>([
-    { nombre: "", cantidad: "" },
+    { nombre: "", cantidad: "", unidad: "lts" },
   ]);
   const [cliente, setCliente] = useState<ClienteData>({
     nombre: "",
@@ -34,7 +42,7 @@ const Productos = () => {
   const emailDestino = "federicobuta51@gmail.com";
 
   const handleAgregarCampo = () => {
-    setProductos((prev) => [...prev, { nombre: "", cantidad: "" }]);
+    setProductos((prev) => [...prev, { nombre: "", cantidad: "", unidad: "lts" }]);
   };
 
   const handleEliminar = (index: number) => {
@@ -64,7 +72,7 @@ const Productos = () => {
     if (cliente.email) mensaje += `Email: ${cliente.email}\n`;
     mensaje += `\nMe gustaría solicitar cotización de los siguientes productos:\n\n`;
     productosValidos.forEach((item, index) => {
-      mensaje += `${index + 1}. ${item.nombre} - Cantidad: ${item.cantidad}\n`;
+      mensaje += `${index + 1}. ${item.nombre} - Cantidad: ${item.cantidad} ${item.unidad}\n`;
     });
     mensaje += "\n¡Gracias!";
     return mensaje;
@@ -191,19 +199,41 @@ const Productos = () => {
                               className={index === 0 ? "mt-2" : ""}
                             />
                           </div>
-                          <div>
-                            {index === 0 && (
-                              <Label htmlFor={`cantidad-${index}`} className="text-foreground">
-                                Cantidad (kg o lt)
-                              </Label>
-                            )}
-                            <Input
-                              id={`cantidad-${index}`}
-                              value={item.cantidad}
-                              onChange={(e) => handleChangeProducto(index, "cantidad", e.target.value)}
-                              placeholder="Ej: 100 lt, 50 kg"
-                              className={index === 0 ? "mt-2" : ""}
-                            />
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                              {index === 0 && (
+                                <Label htmlFor={`cantidad-${index}`} className="text-foreground">
+                                  Cantidad
+                                </Label>
+                              )}
+                              <Input
+                                id={`cantidad-${index}`}
+                                type="number"
+                                value={item.cantidad}
+                                onChange={(e) => handleChangeProducto(index, "cantidad", e.target.value)}
+                                placeholder="Ej: 100"
+                                className={index === 0 ? "mt-2" : ""}
+                              />
+                            </div>
+                            <div className="w-20">
+                              {index === 0 && (
+                                <Label className="text-foreground">Unidad</Label>
+                              )}
+                              <Select
+                                value={item.unidad}
+                                onValueChange={(value: "lts" | "kgs") =>
+                                  handleChangeProducto(index, "unidad", value)
+                                }
+                              >
+                                <SelectTrigger className={index === 0 ? "mt-2" : ""}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="lts">Lts</SelectItem>
+                                  <SelectItem value="kgs">Kgs</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
                           {productos.length > 1 ? (
                             <Button
