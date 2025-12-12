@@ -12,6 +12,7 @@ interface PizarraImageUploaderProps {
 const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImageUploaderProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -40,6 +41,9 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
       return;
     }
 
+    // Store the file in state
+    setSelectedFile(file);
+
     // Show preview
     const reader = new FileReader();
     reader.onload = () => setPreviewUrl(reader.result as string);
@@ -47,8 +51,14 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
   };
 
   const handleUpload = async () => {
-    const file = fileInputRef.current?.files?.[0];
-    if (!file) return;
+    if (!selectedFile) {
+      toast({
+        title: 'No hay archivo seleccionado',
+        description: 'Por favor selecciona una imagen primero',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     setIsUploading(true);
 
@@ -64,12 +74,12 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
       }
 
       // Upload new image with timestamp to avoid cache issues
-      const fileExt = file.name.split('.').pop();
+      const fileExt = selectedFile.name.split('.').pop();
       const fileName = `pizarra-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('pizarra')
-        .upload(fileName, file, {
+        .upload(fileName, selectedFile, {
           cacheControl: '0',
           upsert: true,
         });
@@ -82,6 +92,7 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
       });
 
       setPreviewUrl(null);
+      setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       onUploadSuccess();
     } catch (error: any) {
@@ -98,6 +109,7 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
 
   const cancelPreview = () => {
     setPreviewUrl(null);
+    setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
