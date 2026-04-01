@@ -1,73 +1,139 @@
-# Welcome to your Lovable project
+# Butassi Hnos. — Landing Web
 
-## Project info
+Sitio web de **Butassi Hnos.**, empresa familiar de Corralito, Córdoba, dedicada a la compra y venta de cereales, agroquímicos y servicios de apoyo agrícola.
 
-**URL**: https://lovable.dev/projects/4efdaa35-2f8b-49e1-b251-4f6c78878aff
+**URL de producción:** https://butassihnos.com.ar
 
-## How can I edit this code?
+## Stack
 
-There are several ways of editing your application.
+- **Frontend:** React 18 + TypeScript + Vite
+- **UI:** Tailwind CSS + shadcn/ui
+- **Backend:** Supabase (auth, storage, Edge Functions)
+- **Email:** Resend (formulario de contacto)
+- **Hosting:** GitHub Pages (deploy automático via GitHub Actions)
+- **Analytics:** Google Analytics 4 (opcional, requiere consentimiento)
+- **Error tracking:** Sentry (opcional)
 
-**Use Lovable**
+## Setup local
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/4efdaa35-2f8b-49e1-b251-4f6c78878aff) and start prompting.
+### 1. Clonar e instalar
 
-Changes made via Lovable will be committed automatically to this repo.
+```bash
+git clone https://github.com/federicobutassi/butassi-agro-landing.git
+cd butassi-agro-landing
+npm install
+```
 
-**Use your preferred IDE**
+### 2. Variables de entorno
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```bash
+cp .env.example .env.local
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Completar `.env.local` con los valores reales. Las variables obligatorias son:
 
-Follow these steps:
+| Variable | Descripción |
+|---|---|
+| `VITE_SUPABASE_URL` | URL del proyecto Supabase |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Anon key de Supabase |
+| `VITE_SUPABASE_PROJECT_ID` | ID del proyecto Supabase |
+| `VITE_CONTACT_EMAIL` | Email de destino del formulario |
+| `VITE_WHATSAPP_NUMBER` | Número de WhatsApp (formato: 5493571XXXXXX) |
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Las variables opcionales (`VITE_GA_MEASUREMENT_ID`, `VITE_SENTRY_DSN`, URLs de redes sociales) simplemente no activan esas funcionalidades si están vacías.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 3. Iniciar en desarrollo
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Abre http://localhost:8080
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Scripts disponibles
 
-**Use GitHub Codespaces**
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Build de producción |
+| `npm run preview` | Preview del build |
+| `npm run lint` | Linting con ESLint |
+| `npm run typecheck` | Verificación de tipos con TypeScript |
+| `npm run test` | Ejecutar tests |
+| `npm run test:watch` | Tests en modo watch |
+| `npm run test:coverage` | Tests con reporte de cobertura |
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Deploy
 
-## What technologies are used for this project?
+El deploy a producción es **automático** al hacer push a `main`:
 
-This project is built with:
+```
+git push origin main
+# → GitHub Actions buildea y despliega en ~2-3 minutos
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Para staging, hacer push a `develop` genera un artefacto de build sin publicarlo automáticamente.
 
-## How can I deploy this project?
+### Variables en GitHub Actions
 
-Simply open [Lovable](https://lovable.dev/projects/4efdaa35-2f8b-49e1-b251-4f6c78878aff) and click on Share -> Publish.
+Configurar en **Settings → Secrets and variables → Actions → Variables**:
 
-## Can I connect a custom domain to my Lovable project?
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SUPABASE_PROJECT_ID`
+- `VITE_CONTACT_EMAIL`
+- `VITE_WHATSAPP_NUMBER`
+- `VITE_GA_MEASUREMENT_ID` (opcional)
+- `VITE_SENTRY_DSN` (opcional)
 
-Yes, you can!
+## Supabase
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Edge Functions
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+| Función | Descripción |
+|---|---|
+| `send-contact` | Envía el formulario de contacto via Resend |
+| `weather` | Datos meteorológicos para el Radar Agro-Climático |
+| `agro-news` | Noticias agropecuarias via RSS |
+
+#### Variables de entorno en Supabase
+
+Configurar en **Supabase Dashboard → Settings → Edge Functions**:
+
+- `RESEND_API_KEY` — API key de [Resend](https://resend.com)
+- `CONTACT_EMAIL` — Email de destino
+
+### RLS (Row Level Security)
+
+Para proteger el bucket `pizarra` ejecutar en **SQL Editor**:
+
+```sql
+-- Ver archivo supabase/rls-pizarra.sql
+```
+
+## Estructura del proyecto
+
+```
+src/
+  components/       # Componentes reutilizables
+    ui/             # shadcn/ui primitives
+  hooks/            # Custom hooks (useAuth, useAnalytics)
+  integrations/
+    supabase/       # Cliente Supabase y tipos generados
+  pages/            # Páginas de la aplicación
+  test/             # Tests unitarios
+supabase/
+  functions/        # Edge Functions de Supabase
+  rls-pizarra.sql   # Políticas RLS para Storage
+public/
+  sitemap.xml       # Sitemap para SEO
+  robots.txt        # Directivas para crawlers
+```
+
+## Pre-push hooks
+
+Husky ejecuta automáticamente antes de cada push:
+1. `typecheck` — verifica que no haya errores de TypeScript
+2. `test` — corre la suite de tests
+
+Para saltear en casos de emergencia (no recomendado): `git push --no-verify`

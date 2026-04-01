@@ -4,6 +4,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import Footer from "@/components/Footer";
 import AdminLoginDialog from "@/components/AdminLoginDialog";
 import PizarraImageUploader from "@/components/PizarraImageUploader";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -33,8 +34,6 @@ const Pizarra = () => {
         const { data: urlData } = supabase.storage
           .from('pizarra')
           .getPublicUrl(files[0].name);
-        // El nombre del archivo ya incluye un timestamp único por cada upload,
-        // por lo que no se necesita cache busting adicional.
         setImageUrl(urlData.publicUrl);
       } else {
         setImageUrl('/pizarra1112.png');
@@ -80,16 +79,14 @@ const Pizarra = () => {
               <div className="bg-muted/30 rounded-xl p-4 border border-border">
                 <div className="w-full aspect-[9/16] bg-muted rounded-lg overflow-hidden">
                   {imageLoading ? (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="animate-pulse text-muted-foreground">
-                        Cargando...
-                      </div>
-                    </div>
+                    <Skeleton className="w-full h-full" />
                   ) : imageUrl ? (
                     <img
                       src={imageUrl}
-                      alt="Pizarra de Rosario"
+                      alt="Pizarra de Rosario — precios de cereales"
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-muted-foreground">

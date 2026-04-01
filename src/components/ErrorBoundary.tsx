@@ -15,8 +15,13 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true };
   }
 
-  componentDidCatch(_error: Error, _info: ErrorInfo): void {
-    // Aquí se integraría un servicio de tracking (ej: Sentry)
+  componentDidCatch(error: Error, info: ErrorInfo): void {
+    // Reportar a Sentry si está disponible
+    if (import.meta.env.VITE_SENTRY_DSN) {
+      import("@sentry/react").then((Sentry) => {
+        Sentry.captureException(error, { extra: { componentStack: info.componentStack } });
+      });
+    }
   }
 
   render() {

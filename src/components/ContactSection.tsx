@@ -1,6 +1,4 @@
 // src/components/ContactSection.tsx
-"use client";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,14 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { Mail, Phone, MapPin, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/hooks/useAnalytics";
 
 const contactSchema = z.object({
   nombre: z.string().min(1, "El nombre es obligatorio"),
   email: z.string().email("El email no es válido"),
-  mensaje: z.string().min(1, "El mensaje es obligatorio"),
+  mensaje: z.string().min(10, "El mensaje debe tener al menos 10 caracteres"),
   telefono: z.string().optional(),
   tipoConsulta: z.string().optional(),
   company: z.string().optional(),
@@ -32,72 +32,59 @@ type FormData = {
   telefono: string;
   tipoConsulta: string;
   mensaje: string;
-  company?: string; // honeypot
+  company?: string;
+};
+
+const EMPTY_FORM: FormData = {
+  nombre: "",
+  email: "",
+  telefono: "",
+  tipoConsulta: "",
+  mensaje: "",
+  company: "",
 };
 
 const ContactSection = () => {
-  const [formData, setFormData] = useState<FormData>({
-    nombre: "",
-    email: "",
-    telefono: "",
-    tipoConsulta: "",
-    mensaje: "",
-    company: "",
-  });
+  const [formData, setFormData] = useState<FormData>(EMPTY_FORM);
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Honeypot: si viene con valor, no enviamos (probable bot)
-    if (formData.company && formData.company.trim().length > 0) {
-      return;
-    }
+    if (formData.company && formData.company.trim().length > 0) return;
 
-    // Validación con zod
     const result = contactSchema.safeParse(formData);
     if (!result.success) {
       toast.error(result.error.errors[0].message);
       return;
     }
 
-    // Crear el mailto link
-    const subject = encodeURIComponent(`Consulta desde web - ${formData.nombre}`);
-    const body = encodeURIComponent(
-      `Nombre: ${formData.nombre}\n` +
-      `Email: ${formData.email}\n` +
-      (formData.telefono ? `Teléfono: ${formData.telefono}\n` : "") +
-      (formData.tipoConsulta ? `Tipo de consulta: ${formData.tipoConsulta}\n` : "") +
-      `\nMensaje:\n${formData.mensaje}`
-    );
+    setSending(true);
+    try {
+      const { error } = await supabase.functions.invoke("send-contact", {
+        body: formData,
+      });
 
-    // Importante: con mailto no se puede forzar el "From"; será el del cliente del usuario.
-    window.location.href = `mailto:${import.meta.env.VITE_CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+      if (error) throw error;
 
-    toast.success("Abriendo tu cliente de correo...");
-
-    // Limpiar formulario
-    setFormData({
-      nombre: "",
-      email: "",
-      telefono: "",
-      tipoConsulta: "",
-      mensaje: "",
-      company: "",
-    });
+      toast.success("¡Mensaje enviado! Te respondemos a la brevedad.");
+      trackEvent("contact_form_submit", { tipo: formData.tipoConsulta || "general" });
+      setFormData(EMPTY_FORM);
+    } catch {
+      toast.error("Hubo un error al enviar el mensaje. Intentá de nuevo.");
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   return (
     <section id="contacto" className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
           <div className="text-center mb-16 animate-fade-in">
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
               Contacto
@@ -122,9 +109,7 @@ const ContactSection = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold text-foreground mb-1">Ubicación</h4>
-                      <p className="text-muted-foreground">
-                        Corralito, Córdoba, Argentina
-                      </p>
+                      <p className="text-muted-foreground">Corralito, Córdoba, Argentina</p>
                     </div>
                   </div>
 
@@ -149,10 +134,7 @@ const ContactSection = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold text-foreground mb-1">Teléfono</h4>
-                      <a
-                        href="tel:+5493571327923"
-                        className="text-primary hover:underline"
-                      >
+                      <a href="tel:+5493571327923" className="text-primary hover:underline">
                         +54 9 3571 327923<br />
                         +54 9 3571 319460<br />
                         +54 9 3571 319461
@@ -186,94 +168,65 @@ const ContactSection = () => {
                 />
 
                 <div>
-                  <Label htmlFor="nombre" className="text-foreground">
-                    Nombre *
-                  </Label>
+                  <Label htmlFor="nombre" className="text-foreground">Nombre *</Label>
                   <Input
-                    id="nombre"
-                    name="nombre"
-                    value={formData.nombre}
-                    onChange={handleChange}
-                    required
-                    className="mt-2"
-                    placeholder="Tu nombre completo"
+                    id="nombre" name="nombre"
+                    value={formData.nombre} onChange={handleChange}
+                    required className="mt-2" placeholder="Tu nombre completo"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="email" className="text-foreground">
-                    Email *
-                  </Label>
+                  <Label htmlFor="email" className="text-foreground">Email *</Label>
                   <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="mt-2"
-                    placeholder="tu@email.com"
+                    id="email" name="email" type="email"
+                    value={formData.email} onChange={handleChange}
+                    required className="mt-2" placeholder="tu@email.com"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="telefono" className="text-foreground">
-                    Teléfono
-                  </Label>
+                  <Label htmlFor="telefono" className="text-foreground">Teléfono</Label>
                   <Input
-                    id="telefono"
-                    name="telefono"
-                    type="tel"
-                    value={formData.telefono}
-                    onChange={handleChange}
-                    className="mt-2"
-                    placeholder="+54 9 3571 000000"
+                    id="telefono" name="telefono" type="tel"
+                    value={formData.telefono} onChange={handleChange}
+                    className="mt-2" placeholder="+54 9 3571 000000"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="tipoConsulta" className="text-foreground">
-                    Tipo de Consulta
-                  </Label>
+                  <Label htmlFor="tipoConsulta" className="text-foreground">Tipo de Consulta</Label>
                   <Select
                     value={formData.tipoConsulta}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, tipoConsulta: value }))
-                    }
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, tipoConsulta: value }))}
                   >
                     <SelectTrigger className="mt-2">
                       <SelectValue placeholder="Seleccioná una opción" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Compra y venta de cereales">
-                        Compra y venta de cereales
-                      </SelectItem>
-                      <SelectItem value="Pedido de cotización de productos">
-                        Pedido de cotización de productos
-                      </SelectItem>
+                      <SelectItem value="Compra y venta de cereales">Compra y venta de cereales</SelectItem>
+                      <SelectItem value="Pedido de cotización de productos">Pedido de cotización de productos</SelectItem>
                       <SelectItem value="Otra">Otra</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="mensaje" className="text-foreground">
-                    Mensaje *
-                  </Label>
+                  <Label htmlFor="mensaje" className="text-foreground">Mensaje *</Label>
                   <Textarea
-                    id="mensaje"
-                    name="mensaje"
-                    value={formData.mensaje}
-                    onChange={handleChange}
-                    required
-                    className="mt-2 min-h-[150px]"
+                    id="mensaje" name="mensaje"
+                    value={formData.mensaje} onChange={handleChange}
+                    required className="mt-2 min-h-[150px]"
                     placeholder="Contanos cómo podemos ayudarte..."
                   />
                 </div>
 
-                <Button type="submit" size="lg" className="w-full">
-                  <Send className="w-4 h-4 mr-2" />
-                  Enviar Mensaje
+                <Button type="submit" size="lg" className="w-full" disabled={sending}>
+                  {sending ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
+                  ) : (
+                    <><Send className="w-4 h-4 mr-2" />Enviar Mensaje</>
+                  )}
                 </Button>
               </form>
             </div>
