@@ -32,8 +32,7 @@ const Pizarra = () => {
         // Fallback to static image if no uploaded image exists
         setImageUrl('/pizarra1112.png');
       }
-    } catch (error) {
-      console.error('Error fetching pizarra image:', error);
+    } catch {
       setImageUrl('/pizarra1112.png');
     } finally {
       setImageLoading(false);

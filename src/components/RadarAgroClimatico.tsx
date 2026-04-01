@@ -42,6 +42,13 @@ type NewsData = {
   fuenteNombre?: string;
 };
 
+type RawNoticia = {
+  titulo: string;
+  resumen: string;
+  fuente: string;
+  fuenteNombre?: string;
+};
+
 // Datos de respaldo cuando la API no está disponible
 const FALLBACK_DATA = {
   weather: {
@@ -72,13 +79,11 @@ const fetchWeatherFromAPI = async (): Promise<{ weather: WeatherData; forecast: 
     });
 
     if (error || data?.error) {
-      console.warn('API weather no disponible, usando datos de respaldo:', error || data?.error);
       return FALLBACK_DATA;
     }
 
     return data;
-  } catch (error) {
-    console.warn('Error en fetchWeatherFromAPI, usando datos de respaldo:', error);
+  } catch {
     return FALLBACK_DATA;
   }
 };
@@ -89,12 +94,11 @@ const fetchNewsFromAPI = async (): Promise<NewsData[]> => {
     const { data, error } = await supabase.functions.invoke('agro-news');
 
     if (error) {
-      console.error('Error fetching news:', error);
       throw error;
     }
 
     if (data?.noticias && data.noticias.length > 0) {
-      return data.noticias.slice(0, 3).map((noticia: any) => ({
+      return data.noticias.slice(0, 3).map((noticia: RawNoticia) => ({
         titulo: noticia.titulo,
         resumen: noticia.resumen,
         fuente: noticia.fuente,
@@ -102,8 +106,7 @@ const fetchNewsFromAPI = async (): Promise<NewsData[]> => {
       }));
     }
     return [];
-  } catch (error) {
-    console.error('Error in fetchNewsFromAPI:', error);
+  } catch {
     return [];
   }
 };
@@ -162,8 +165,7 @@ const RadarAgroClimatico = () => {
         hour: "2-digit",
         minute: "2-digit"
       }));
-    } catch (error) {
-      console.error("Error al cargar datos:", error);
+    } catch {
       if (showToast) {
         toast.error("Error al actualizar");
       }

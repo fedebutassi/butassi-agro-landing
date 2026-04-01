@@ -15,6 +15,16 @@ import {
 } from "@/components/ui/select";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const contactSchema = z.object({
+  nombre: z.string().min(1, "El nombre es obligatorio"),
+  email: z.string().email("El email no es válido"),
+  mensaje: z.string().min(1, "El mensaje es obligatorio"),
+  telefono: z.string().optional(),
+  tipoConsulta: z.string().optional(),
+  company: z.string().optional(),
+});
 
 type FormData = {
   nombre: string;
@@ -43,9 +53,10 @@ const ContactSection = () => {
       return;
     }
 
-    // Validación básica
-    if (!formData.nombre || !formData.email || !formData.mensaje) {
-      toast.error("Por favor completá todos los campos obligatorios");
+    // Validación con zod
+    const result = contactSchema.safeParse(formData);
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
       return;
     }
 
@@ -60,7 +71,7 @@ const ContactSection = () => {
     );
 
     // Importante: con mailto no se puede forzar el "From"; será el del cliente del usuario.
-    window.location.href = `mailto:federicobuta51@gmail.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${import.meta.env.VITE_CONTACT_EMAIL}?subject=${subject}&body=${body}`;
 
     toast.success("Abriendo tu cliente de correo...");
 
@@ -124,10 +135,10 @@ const ContactSection = () => {
                     <div>
                       <h4 className="font-semibold text-foreground mb-1">Email</h4>
                       <a
-                        href="mailto:federicobuta51@gmail.com"
+                        href={`mailto:${import.meta.env.VITE_CONTACT_EMAIL}`}
                         className="text-primary hover:underline break-all"
                       >
-                        federicobuta51@gmail.com
+                        {import.meta.env.VITE_CONTACT_EMAIL}
                       </a>
                     </div>
                   </div>

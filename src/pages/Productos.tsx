@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { z } from "zod";
 import Navbar from "@/components/Navbar";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Footer from "@/components/Footer";
@@ -27,6 +28,15 @@ type ClienteData = {
   email: string;
 };
 
+const clienteSchema = z.object({
+  nombre: z.string().min(1, "El nombre es obligatorio"),
+  telefono: z.string(),
+  email: z.union([z.string().email("El email no es válido"), z.literal("")]),
+}).refine(
+  (data) => data.telefono.trim().length > 0 || data.email.trim().length > 0,
+  { message: "Ingresá al menos un dato de contacto (teléfono o email)", path: ["telefono"] }
+);
+
 const Productos = () => {
   const [productos, setProductos] = useState<ProductItem[]>([
     { nombre: "", cantidad: "", unidad: "lts" },
@@ -38,8 +48,8 @@ const Productos = () => {
   });
   const [pedidoListo, setPedidoListo] = useState(false);
 
-  const whatsappNumber = "5493571327923";
-  const emailDestino = "federicobuta51@gmail.com";
+  const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER as string;
+  const emailDestino = import.meta.env.VITE_CONTACT_EMAIL as string;
 
   const handleAgregarCampo = () => {
     setProductos((prev) => [...prev, { nombre: "", cantidad: "", unidad: "lts" }]);
@@ -79,8 +89,9 @@ const Productos = () => {
   };
 
   const handlePedidoListo = () => {
-    if (!clienteValido) {
-      toast.error("Por favor completá tu nombre y al menos un dato de contacto");
+    const result = clienteSchema.safeParse(cliente);
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
       return;
     }
     if (productosValidos.length === 0) {

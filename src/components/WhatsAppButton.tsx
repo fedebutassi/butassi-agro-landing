@@ -5,7 +5,7 @@ const WhatsAppButton = () => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  const whatsappNumber = "5493571327923";
+  const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER as string;
   const whatsappMessage = encodeURIComponent("Hola! Me gustaría consultar sobre sus servicios.");
 
   useEffect(() => {

@@ -95,11 +95,10 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       onUploadSuccess();
-    } catch (error: any) {
-      console.error('Upload error:', error);
+    } catch (error) {
       toast({
         title: 'Error al subir imagen',
-        description: error.message || 'Ocurrió un error al subir la imagen',
+        description: error instanceof Error ? error.message : 'Ocurrió un error al subir la imagen',
         variant: 'destructive',
       });
     } finally {
