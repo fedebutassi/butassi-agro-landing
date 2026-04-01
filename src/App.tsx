@@ -1,4 +1,5 @@
 // src/App.tsx
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,12 +9,13 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import CookieConsent from "@/components/CookieConsent";
-import Index from "./pages/Index";
-import Productos from "./pages/Productos";
-import Pizarra from "./pages/Pizarra";
-import Contacto from "./pages/Contacto";
-import Privacidad from "./pages/Privacidad";
-import NotFound from "./pages/NotFound";
+
+const Index = lazy(() => import("./pages/Index"));
+const Productos = lazy(() => import("./pages/Productos"));
+const Pizarra = lazy(() => import("./pages/Pizarra"));
+const Contacto = lazy(() => import("./pages/Contacto"));
+const Privacidad = lazy(() => import("./pages/Privacidad"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,14 +36,16 @@ const App = () => (
           <Sonner />
           <BrowserRouter basename={import.meta.env.BASE_URL}>
             <GoogleAnalytics />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/productos" element={<Productos />} />
-              <Route path="/pizarra" element={<Pizarra />} />
-              <Route path="/contacto" element={<Contacto />} />
-              <Route path="/privacidad" element={<Privacidad />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Suspense fallback={null}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/productos" element={<Productos />} />
+                <Route path="/pizarra" element={<Pizarra />} />
+                <Route path="/contacto" element={<Contacto />} />
+                <Route path="/privacidad" element={<Privacidad />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
             <CookieConsent />
           </BrowserRouter>
         </TooltipProvider>

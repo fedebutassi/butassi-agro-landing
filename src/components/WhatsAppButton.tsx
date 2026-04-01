@@ -15,27 +15,22 @@ const WhatsAppButton = () => {
   useEffect(() => {
     if (dismissed) return;
 
-    const showTimer = setTimeout(() => {
-      setShowTooltip(true);
-    }, TOOLTIP_INITIAL_DELAY_MS);
-
-    return () => clearTimeout(showTimer);
+    const show = setTimeout(() => setShowTooltip(true), TOOLTIP_INITIAL_DELAY_MS);
+    return () => clearTimeout(show);
   }, [dismissed]);
 
   useEffect(() => {
     if (!showTooltip || dismissed) return;
 
-    const hideTimer = setTimeout(() => {
-      setShowTooltip(false);
-    }, TOOLTIP_DISPLAY_DURATION_MS);
-
-    const cycleTimer = setTimeout(() => {
-      setShowTooltip(true);
-    }, TOOLTIP_CYCLE_INTERVAL_MS);
+    const hide = setTimeout(() => setShowTooltip(false), TOOLTIP_DISPLAY_DURATION_MS);
+    const cycle = setTimeout(
+      () => setShowTooltip(true),
+      TOOLTIP_DISPLAY_DURATION_MS + TOOLTIP_CYCLE_INTERVAL_MS
+    );
 
     return () => {
-      clearTimeout(hideTimer);
-      clearTimeout(cycleTimer);
+      clearTimeout(hide);
+      clearTimeout(cycle);
     };
   }, [showTooltip, dismissed]);
 
