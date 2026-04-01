@@ -13,7 +13,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky"
+    "prepare": "node -e \"if(process.env.CI) process.exit(0)\" && husky || true"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
