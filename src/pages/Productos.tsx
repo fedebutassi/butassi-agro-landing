@@ -252,6 +252,7 @@ const Productos = () => {
                               size="icon"
                               onClick={() => handleEliminar(index)}
                               className="text-destructive hover:text-destructive/80 h-10 w-10"
+                              aria-label={`Eliminar producto ${index + 1}`}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>

@@ -2,12 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  Cloud, 
-  Droplets, 
-  Wind, 
-  Thermometer, 
-  Gauge, 
+import {
+  Cloud,
+  Droplets,
+  Wind,
+  Thermometer,
+  Gauge,
   ExternalLink,
   Sun,
   CloudRain,
@@ -49,6 +49,13 @@ type RawNoticia = {
   fuenteNombre?: string;
 };
 
+type WeatherAPIResult = {
+  weather: WeatherData;
+  forecast: ForecastData;
+  location: string;
+  isFallback: boolean;
+};
+
 // Datos de respaldo cuando la API no está disponible
 const FALLBACK_DATA = {
   weather: {
@@ -68,27 +75,27 @@ const FALLBACK_DATA = {
   location: "Córdoba Rural (datos estimados)"
 };
 
-// Función para obtener datos del clima desde el backend
-const fetchWeatherFromAPI = async (): Promise<{ weather: WeatherData; forecast: ForecastData; location: string }> => {
+const fetchWeatherFromAPI = async (): Promise<WeatherAPIResult> => {
   try {
     const { data, error } = await supabase.functions.invoke('weather', {
-      body: {
-        lat: -32.1731,
-        lon: -64.1147
-      }
+      body: { lat: -32.1731, lon: -64.1147 }
     });
 
     if (error || data?.error) {
-      return FALLBACK_DATA;
+      return { ...FALLBACK_DATA, isFallback: true };
     }
 
-    return data;
+    return {
+      weather: data.weather as WeatherData,
+      forecast: data.forecast as ForecastData,
+      location: data.location as string,
+      isFallback: false,
+    };
   } catch {
-    return FALLBACK_DATA;
+    return { ...FALLBACK_DATA, isFallback: true };
   }
 };
 
-// Función para obtener noticias agropecuarias desde RSS (ahora devuelve array)
 const fetchNewsFromAPI = async (): Promise<NewsData[]> => {
   try {
     const { data, error } = await supabase.functions.invoke('agro-news');
@@ -133,6 +140,7 @@ const RadarAgroClimatico = () => {
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [isFallback, setIsFallback] = useState(false);
 
   const loadData = async (showToast = false) => {
     if (showToast) {
@@ -140,21 +148,22 @@ const RadarAgroClimatico = () => {
     } else {
       setLoading(true);
     }
-    
+
     try {
       const [apiData, newsData] = await Promise.all([
         fetchWeatherFromAPI(),
         fetchNewsFromAPI()
       ]);
-      
+
       setWeather(apiData.weather);
       setForecast(apiData.forecast);
       setLocation(apiData.location);
-      
+      setIsFallback(apiData.isFallback);
+
       if (showToast) {
         toast.success("Datos actualizados");
       }
-      
+
       if (newsData.length > 0) {
         setNewsList(newsData);
       }
@@ -193,7 +202,6 @@ const RadarAgroClimatico = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-rotate news every 6 seconds
   useEffect(() => {
     if (newsList.length > 1) {
       const newsInterval = setInterval(nextNews, 6000);
@@ -258,8 +266,8 @@ const RadarAgroClimatico = () => {
                         Sensación: {weather.sensacionTermica}°C
                       </p>
                     </div>
-                    <WeatherIcon 
-                      condicion={weather.condicion} 
+                    <WeatherIcon
+                      condicion={weather.condicion}
                       className="h-16 w-16 text-accent"
                     />
                   </div>
@@ -272,6 +280,11 @@ const RadarAgroClimatico = () => {
                   <p className="text-xs text-muted-foreground capitalize bg-primary/5 px-2 py-1 rounded">
                     {weather.descripcion}
                   </p>
+                  {isFallback && (
+                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2 py-1 rounded">
+                      Sin conexión a la API · datos estimados
+                    </p>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -343,6 +356,7 @@ const RadarAgroClimatico = () => {
                       size="icon"
                       className="h-6 w-6 hover:bg-accent/20"
                       onClick={prevNews}
+                      aria-label="Noticia anterior"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -354,6 +368,7 @@ const RadarAgroClimatico = () => {
                       size="icon"
                       className="h-6 w-6 hover:bg-accent/20"
                       onClick={nextNews}
+                      aria-label="Noticia siguiente"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -382,8 +397,8 @@ const RadarAgroClimatico = () => {
                         {currentNews.fuenteNombre}
                       </span>
                     )}
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       className="text-xs border-accent/50 hover:bg-accent/20 hover:border-accent"
                       onClick={() => window.open(currentNews.fuente, "_blank")}
@@ -392,16 +407,16 @@ const RadarAgroClimatico = () => {
                       <ExternalLink className="ml-1 h-3 w-3" />
                     </Button>
                   </div>
-                  {/* Indicadores de carrusel */}
                   {newsList.length > 1 && (
                     <div className="flex justify-center gap-1.5 pt-2">
                       {newsList.map((_, idx) => (
                         <button
                           key={idx}
                           onClick={() => setCurrentNewsIndex(idx)}
+                          aria-label={`Ver noticia ${idx + 1}`}
                           className={`h-1.5 rounded-full transition-all duration-300 ${
-                            idx === currentNewsIndex 
-                              ? 'w-4 bg-accent' 
+                            idx === currentNewsIndex
+                              ? 'w-4 bg-accent'
                               : 'w-1.5 bg-accent/30 hover:bg-accent/50'
                           }`}
                         />

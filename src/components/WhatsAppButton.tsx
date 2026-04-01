@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { MessageCircle, X } from "lucide-react";
 
+const TOOLTIP_INITIAL_DELAY_MS = 3000;
+const TOOLTIP_DISPLAY_DURATION_MS = 5000;
+const TOOLTIP_CYCLE_INTERVAL_MS = 15000;
+
 const WhatsAppButton = () => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -11,10 +15,9 @@ const WhatsAppButton = () => {
   useEffect(() => {
     if (dismissed) return;
 
-    // Mostrar el tooltip después de 3 segundos
     const showTimer = setTimeout(() => {
       setShowTooltip(true);
-    }, 3000);
+    }, TOOLTIP_INITIAL_DELAY_MS);
 
     return () => clearTimeout(showTimer);
   }, [dismissed]);
@@ -22,14 +25,13 @@ const WhatsAppButton = () => {
   useEffect(() => {
     if (!showTooltip || dismissed) return;
 
-    // Ocultar el tooltip después de 5 segundos y volver a mostrarlo
     const hideTimer = setTimeout(() => {
       setShowTooltip(false);
-    }, 5000);
+    }, TOOLTIP_DISPLAY_DURATION_MS);
 
     const cycleTimer = setTimeout(() => {
       setShowTooltip(true);
-    }, 15000);
+    }, TOOLTIP_CYCLE_INTERVAL_MS);
 
     return () => {
       clearTimeout(hideTimer);
@@ -46,25 +48,22 @@ const WhatsAppButton = () => {
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      {/* Tooltip */}
       {showTooltip && !dismissed && (
         <div className="absolute bottom-full right-0 mb-3 animate-fade-in">
           <div className="relative bg-foreground text-background px-4 py-3 rounded-lg shadow-lg whitespace-nowrap">
             <button
               onClick={handleDismiss}
               className="absolute -top-2 -right-2 bg-muted text-muted-foreground rounded-full p-1 hover:bg-muted/80 transition-colors"
-              aria-label="Cerrar"
+              aria-label="Cerrar notificación de WhatsApp"
             >
               <X className="w-3 h-3" />
             </button>
             <p className="text-sm font-medium pr-2">💬 ¡Chateá con nosotros!</p>
-            {/* Flecha */}
             <div className="absolute top-full right-6 w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-foreground" />
           </div>
         </div>
       )}
 
-      {/* Botón WhatsApp */}
       <a
         href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
         target="_blank"

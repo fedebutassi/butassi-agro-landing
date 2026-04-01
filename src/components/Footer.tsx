@@ -5,22 +5,10 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
-    {
-      icon: Facebook,
-      href: "https://facebook.com",
-      label: "Facebook"
-    },
-    {
-      icon: Instagram,
-      href: "https://instagram.com",
-      label: "Instagram"
-    },
-    {
-      icon: Linkedin,
-      href: "https://linkedin.com",
-      label: "LinkedIn"
-    }
-  ];
+    { icon: Facebook, href: import.meta.env.VITE_FACEBOOK_URL ?? "", label: "Facebook" },
+    { icon: Instagram, href: import.meta.env.VITE_INSTAGRAM_URL ?? "", label: "Instagram" },
+    { icon: Linkedin, href: import.meta.env.VITE_LINKEDIN_URL ?? "", label: "LinkedIn" },
+  ].filter((s) => s.href.length > 0);
 
   return (
     <footer className="bg-primary text-primary-foreground py-12">
@@ -44,32 +32,32 @@ const Footer = () => {
               <h4 className="text-lg font-semibold mb-4">Enlaces Rápidos</h4>
               <ul className="space-y-2">
                 <li>
-                  <Link 
-                    to="/" 
+                  <Link
+                    to="/"
                     className="text-primary-foreground/80 hover:text-accent transition-colors duration-300"
                   >
                     Inicio
                   </Link>
                 </li>
                 <li>
-                  <Link 
-                    to="/productos" 
+                  <Link
+                    to="/productos"
                     className="text-primary-foreground/80 hover:text-accent transition-colors duration-300"
                   >
                     Productos
                   </Link>
                 </li>
                 <li>
-                  <Link 
-                    to="/pizarra" 
+                  <Link
+                    to="/pizarra"
                     className="text-primary-foreground/80 hover:text-accent transition-colors duration-300"
                   >
                     Pizarra
                   </Link>
                 </li>
                 <li>
-                  <Link 
-                    to="/contacto" 
+                  <Link
+                    to="/contacto"
                     className="text-primary-foreground/80 hover:text-accent transition-colors duration-300"
                   >
                     Contacto
@@ -79,23 +67,25 @@ const Footer = () => {
             </div>
 
             {/* Social Media */}
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Seguinos</h4>
-              <div className="flex gap-4">
-                {socialLinks.map((social, index) => (
-                  <a
-                    key={index}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={social.label}
-                    className="w-10 h-10 bg-primary-foreground/10 rounded-full flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-all duration-300 hover:scale-110"
-                  >
-                    <social.icon className="w-5 h-5" />
-                  </a>
-                ))}
+            {socialLinks.length > 0 && (
+              <div>
+                <h4 className="text-lg font-semibold mb-4">Seguinos</h4>
+                <div className="flex gap-4">
+                  {socialLinks.map((social) => (
+                    <a
+                      key={social.label}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={social.label}
+                      className="w-10 h-10 bg-primary-foreground/10 rounded-full flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-all duration-300 hover:scale-110"
+                    >
+                      <social.icon className="w-5 h-5" />
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Divider */}

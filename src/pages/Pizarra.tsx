@@ -7,6 +7,8 @@ import PizarraImageUploader from "@/components/PizarraImageUploader";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
+const FETCH_TIMEOUT_MS = 10000;
+
 const Pizarra = () => {
   const { isAdmin, loading } = useAuth();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -15,9 +17,15 @@ const Pizarra = () => {
   const fetchLatestImage = async () => {
     setImageLoading(true);
     try {
-      const { data: files, error } = await supabase.storage
+      const fetchPromise = supabase.storage
         .from('pizarra')
         .list('', { limit: 1, sortBy: { column: 'created_at', order: 'desc' } });
+
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), FETCH_TIMEOUT_MS)
+      );
+
+      const { data: files, error } = await Promise.race([fetchPromise, timeoutPromise]);
 
       if (error) throw error;
 
@@ -25,11 +33,10 @@ const Pizarra = () => {
         const { data: urlData } = supabase.storage
           .from('pizarra')
           .getPublicUrl(files[0].name);
-        
-        // Add timestamp to bust cache
-        setImageUrl(`${urlData.publicUrl}?t=${Date.now()}`);
+        // El nombre del archivo ya incluye un timestamp único por cada upload,
+        // por lo que no se necesita cache busting adicional.
+        setImageUrl(urlData.publicUrl);
       } else {
-        // Fallback to static image if no uploaded image exists
         setImageUrl('/pizarra1112.png');
       }
     } catch {
@@ -61,9 +68,8 @@ const Pizarra = () => {
                 Precios actualizados del mercado
               </p>
             </div>
-            
+
             <div className="max-w-2xl mx-auto space-y-6">
-              {/* Admin Panel - Only visible to admins */}
               {!loading && isAdmin && (
                 <PizarraImageUploader
                   currentImageUrl={imageUrl}
@@ -71,7 +77,6 @@ const Pizarra = () => {
                 />
               )}
 
-              {/* Public Pizarra Image */}
               <div className="bg-muted/30 rounded-xl p-4 border border-border">
                 <div className="w-full aspect-[9/16] bg-muted rounded-lg overflow-hidden">
                   {imageLoading ? (

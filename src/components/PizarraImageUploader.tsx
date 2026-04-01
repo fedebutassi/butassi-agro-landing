@@ -9,6 +9,20 @@ interface PizarraImageUploaderProps {
   onUploadSuccess: () => void;
 }
 
+const validateFileSignature = (file: File): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const bytes = new Uint8Array(e.target?.result as ArrayBuffer);
+      const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47;
+      const isJpeg = bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
+      resolve(isPng || isJpeg);
+    };
+    reader.onerror = () => resolve(false);
+    reader.readAsArrayBuffer(file.slice(0, 4));
+  });
+};
+
 const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImageUploaderProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -16,11 +30,10 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
     if (!validTypes.includes(file.type)) {
       toast({
@@ -31,7 +44,6 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: 'Archivo muy grande',
@@ -41,10 +53,17 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
       return;
     }
 
-    // Store the file in state
-    setSelectedFile(file);
+    const isValidImage = await validateFileSignature(file);
+    if (!isValidImage) {
+      toast({
+        title: 'Archivo inválido',
+        description: 'El contenido del archivo no corresponde a una imagen válida',
+        variant: 'destructive',
+      });
+      return;
+    }
 
-    // Show preview
+    setSelectedFile(file);
     const reader = new FileReader();
     reader.onload = () => setPreviewUrl(reader.result as string);
     reader.readAsDataURL(file);
@@ -63,7 +82,6 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
     setIsUploading(true);
 
     try {
-      // Delete existing pizarra image if exists
       const { data: existingFiles } = await supabase.storage
         .from('pizarra')
         .list();
@@ -73,7 +91,6 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
         await supabase.storage.from('pizarra').remove(filesToDelete);
       }
 
-      // Upload new image with timestamp to avoid cache issues
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `pizarra-${Date.now()}.${fileExt}`;
 
@@ -120,7 +137,6 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
-        {/* Current Image */}
         <div className="space-y-2">
           <p className="text-sm font-medium text-muted-foreground">Imagen actual:</p>
           <div className="aspect-[9/16] max-h-64 bg-muted rounded-lg overflow-hidden">
@@ -138,7 +154,6 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
           </div>
         </div>
 
-        {/* Preview / Upload */}
         <div className="space-y-2">
           <p className="text-sm font-medium text-muted-foreground">
             {previewUrl ? 'Vista previa:' : 'Nueva imagen:'}
@@ -172,7 +187,6 @@ const PizarraImageUploader = ({ currentImageUrl, onUploadSuccess }: PizarraImage
         </div>
       </div>
 
-      {/* Action Buttons */}
       {previewUrl && (
         <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={cancelPreview} disabled={isUploading}>
