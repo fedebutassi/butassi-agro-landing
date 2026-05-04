@@ -1,5 +1,4 @@
 import { ChevronDown } from "lucide-react";
-import heroBg from "@/assets/hero-bg.jpg";
 import logoImage from "@/assets/butassihnos.png?url";
 
 const HeroSection = () => {
@@ -12,7 +11,7 @@ const HeroSection = () => {
       {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroBg})` }}
+        style={{ backgroundImage: "url('/hero-bg.webp')" }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/70 to-background/95" />
       </div>
@@ -32,9 +31,9 @@ const HeroSection = () => {
           </div>
 
           {/* Slogan */}
-          <h2 className="text-3xl md:text-5xl font-bold text-background drop-shadow-lg">
+          <h1 className="text-3xl md:text-5xl font-bold text-background drop-shadow-lg">
             Servicios de Apoyo Agrícola
-          </h2>
+          </h1>
 
           {/* Subtitle */}
           <p className="text-xl md:text-2xl text-background/95 drop-shadow max-w-2xl mx-auto">

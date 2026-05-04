@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoImage from "@/assets/butassihnos.png?url";
@@ -8,6 +8,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -53,6 +54,7 @@ const Navbar = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                aria-current={pathname === item.path ? "page" : undefined}
                 className="text-foreground hover:text-primary transition-colors duration-300 font-medium"
               >
                 {item.label}
@@ -67,6 +69,8 @@ const Navbar = () => {
             className="md:hidden"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-menu"
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
@@ -74,12 +78,13 @@ const Navbar = () => {
 
         {/* Mobile Dropdown Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 animate-fade-in">
+          <div id="mobile-menu" className="md:hidden py-4 animate-fade-in">
             {menuItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={() => setIsMenuOpen(false)}
+                aria-current={pathname === item.path ? "page" : undefined}
                 className="block w-full text-left px-4 py-3 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors duration-300"
               >
                 {item.label}

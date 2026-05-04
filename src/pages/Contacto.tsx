@@ -7,7 +7,7 @@ const Contacto = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <main className="pt-20">
+      <main id="main-content" className="pt-20">
         <ContactSection />
       </main>
       <WhatsAppButton />
