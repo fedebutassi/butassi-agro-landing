@@ -93,7 +93,7 @@ const Footer = () => {
 
           {/* Copyright */}
           <div className="text-center text-primary-foreground/80">
-            <p>© {currentYear} Butassi Hnos. Todos los derechos reservados. Realizado por <a href="https://instagram.com/nextlvl.ok" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary-foreground transition-colors">NextLevel</a></p>
+            <p>© {currentYear} Butassi Hnos. Todos los derechos reservados. Realizado por <a href="https://wa.me/543571327923?text=Hola%2C%20vi%20que%20realizaste%20la%20pagina%20para%20ButassiHnos%2C%20me%20interesaria%20saber%20mas%20sobre%20tus%20servicios." target="_blank" rel="noopener noreferrer" className="underline hover:text-primary-foreground transition-colors">NextLevel</a></p>
           </div>
         </div>
       </div>
