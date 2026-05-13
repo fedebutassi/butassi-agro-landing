@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Send, Trash2, Mail, MessageCircle, Check } from "lucide-react";
+import { Plus, Trash2, Mail, MessageCircle, Check } from "lucide-react";
 import { toast } from "sonner";
 
 type ProductItem = {
@@ -73,8 +73,6 @@ const Productos = () => {
   const productosValidos = productos.filter(
     (p) => p.nombre.trim() && p.cantidad.trim()
   );
-
-  const clienteValido = cliente.nombre.trim() && (cliente.telefono.trim() || cliente.email.trim());
 
   const generarMensaje = () => {
     let mensaje = `¡Hola! Soy ${cliente.nombre}.\n`;

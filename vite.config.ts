@@ -32,17 +32,16 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ["react", "react-dom", "react-router-dom"],
-          query: ["@tanstack/react-query"],
-          radix: [
-            "@radix-ui/react-dialog",
-            "@radix-ui/react-dropdown-menu",
-            "@radix-ui/react-tooltip",
-            "@radix-ui/react-tabs",
-            "@radix-ui/react-select",
-            "@radix-ui/react-accordion",
-          ],
+        manualChunks(id) {
+          if (id.includes("/react/") || id.includes("/react-dom/") || id.includes("/react-router")) {
+            return "vendor";
+          }
+          if (id.includes("@tanstack/react-query")) {
+            return "query";
+          }
+          if (id.includes("@radix-ui")) {
+            return "radix";
+          }
         },
       },
     },

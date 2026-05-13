@@ -65,13 +65,14 @@ serve(async (req) => {
     // Calculate precipitation probability from forecast
     let probLluvia = 0;
     let precipitacion = 0;
+    type ForecastItem = { pop?: number; rain?: { '3h'?: number } };
     if (forecastData?.list) {
-      const next24h = forecastData.list.slice(0, 8);
+      const next24h: ForecastItem[] = forecastData.list.slice(0, 8);
       probLluvia = Math.round(
-        next24h.reduce((max: number, item: any) => Math.max(max, (item.pop || 0) * 100), 0)
+        next24h.reduce((max, item) => Math.max(max, (item.pop || 0) * 100), 0)
       );
       precipitacion = Math.round(
-        next24h.reduce((sum: number, item: any) => sum + (item.rain?.['3h'] || 0), 0) * 10
+        next24h.reduce((sum, item) => sum + (item.rain?.['3h'] || 0), 0) * 10
       ) / 10;
     }
 
