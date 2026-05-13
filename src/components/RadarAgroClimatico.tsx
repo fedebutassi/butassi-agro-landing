@@ -56,6 +56,22 @@ type WeatherAPIResult = {
   isFallback: boolean;
 };
 
+const CACHE_TTL_MS = 10 * 60 * 1000;
+
+type DataCache = {
+  timestamp: number;
+  weather: WeatherData;
+  forecast: ForecastData;
+  location: string;
+  isFallback: boolean;
+  news: NewsData[];
+};
+
+let dataCache: DataCache | null = null;
+
+const isCacheValid = () =>
+  dataCache !== null && Date.now() - dataCache.timestamp < CACHE_TTL_MS;
+
 // Datos de respaldo cuando la API no está disponible
 const FALLBACK_DATA = {
   weather: {
@@ -142,42 +158,48 @@ const RadarAgroClimatico = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [isFallback, setIsFallback] = useState(false);
 
-  const loadData = async (showToast = false) => {
-    if (showToast) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
+  const applyCache = (cache: DataCache) => {
+    setWeather(cache.weather);
+    setForecast(cache.forecast);
+    setLocation(cache.location);
+    setIsFallback(cache.isFallback);
+    if (cache.news.length > 0) setNewsList(cache.news);
+    setLastUpdate(new Date(cache.timestamp).toLocaleString("es-AR", {
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    }));
+  };
+
+  const loadData = async (showToast = false, force = false) => {
+    if (!force && isCacheValid()) {
+      applyCache(dataCache!);
+      setLoading(false);
+      return;
     }
+
+    if (showToast) setRefreshing(true);
+    else setLoading(true);
 
     try {
       const [apiData, newsData] = await Promise.all([
         fetchWeatherFromAPI(),
-        fetchNewsFromAPI()
+        fetchNewsFromAPI(),
       ]);
 
-      setWeather(apiData.weather);
-      setForecast(apiData.forecast);
-      setLocation(apiData.location);
-      setIsFallback(apiData.isFallback);
+      const now = Date.now();
+      dataCache = {
+        timestamp: now,
+        weather: apiData.weather,
+        forecast: apiData.forecast,
+        location: apiData.location,
+        isFallback: apiData.isFallback,
+        news: newsData,
+      };
 
-      if (showToast) {
-        toast.success("Datos actualizados");
-      }
-
-      if (newsData.length > 0) {
-        setNewsList(newsData);
-      }
-      setLastUpdate(new Date().toLocaleString("es-AR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      }));
+      applyCache(dataCache);
+      if (showToast) toast.success("Datos actualizados");
     } catch {
-      if (showToast) {
-        toast.error("Error al actualizar");
-      }
+      if (showToast) toast.error("Error al actualizar");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -185,7 +207,7 @@ const RadarAgroClimatico = () => {
   };
 
   const handleRefresh = () => {
-    loadData(true);
+    loadData(true, true);
   };
 
   const nextNews = useCallback(() => {
@@ -198,7 +220,7 @@ const RadarAgroClimatico = () => {
 
   useEffect(() => {
     loadData(false);
-    const interval = setInterval(() => loadData(false), 15 * 60 * 1000);
+    const interval = setInterval(() => loadData(false, true), CACHE_TTL_MS);
     return () => clearInterval(interval);
   }, []);
 
