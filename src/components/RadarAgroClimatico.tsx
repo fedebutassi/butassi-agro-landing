@@ -158,7 +158,7 @@ const RadarAgroClimatico = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [isFallback, setIsFallback] = useState(false);
 
-  const applyCache = (cache: DataCache) => {
+  const applyCache = useCallback((cache: DataCache) => {
     setWeather(cache.weather);
     setForecast(cache.forecast);
     setLocation(cache.location);
@@ -168,9 +168,9 @@ const RadarAgroClimatico = () => {
       day: "2-digit", month: "2-digit", year: "numeric",
       hour: "2-digit", minute: "2-digit",
     }));
-  };
+  }, []);
 
-  const loadData = async (showToast = false, force = false) => {
+  const loadData = useCallback(async (showToast = false, force = false) => {
     if (!force && isCacheValid()) {
       applyCache(dataCache!);
       setLoading(false);
@@ -204,7 +204,7 @@ const RadarAgroClimatico = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [applyCache]);
 
   const handleRefresh = () => {
     loadData(true, true);
@@ -222,7 +222,7 @@ const RadarAgroClimatico = () => {
     loadData(false);
     const interval = setInterval(() => loadData(false, true), CACHE_TTL_MS);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadData]);
 
   useEffect(() => {
     if (newsList.length > 1) {
