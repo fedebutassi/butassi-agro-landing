@@ -5,14 +5,43 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const unauthorized = () =>
+  new Response(
+    JSON.stringify({ error: 'Unauthorized' }),
+    { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { email, password } = await req.json();
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) return unauthorized();
 
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    // Verify caller identity via JWT
+    const jwt = authHeader.replace('Bearer ', '');
+    const { data: { user: caller }, error: userError } = await supabaseAdmin.auth.getUser(jwt);
+    if (userError || !caller) return unauthorized();
+
+    // Verify caller has admin role
+    const { data: roleData } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', caller.id)
+      .eq('role', 'admin')
+      .maybeSingle();
+    if (!roleData) return unauthorized();
+
+    // Parse and validate request body
+    const { email, password } = await req.json();
     if (!email || !password) {
       return new Response(
         JSON.stringify({ error: 'Email y password son requeridos' }),
@@ -20,14 +49,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create Supabase admin client with service role
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
-
-    // Create user
+    // Create new admin user
     const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -35,34 +57,28 @@ Deno.serve(async (req) => {
     });
 
     if (createError) {
-      console.error('Error creating user:', createError);
       return new Response(
         JSON.stringify({ error: createError.message }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Assign admin role
-    const { error: roleError } = await supabaseAdmin
+    const { error: insertError } = await supabaseAdmin
       .from('user_roles')
       .insert({ user_id: userData.user.id, role: 'admin' });
 
-    if (roleError) {
-      console.error('Error assigning role:', roleError);
+    if (insertError) {
       return new Response(
-        JSON.stringify({ error: 'Usuario creado pero error al asignar rol: ' + roleError.message }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Usuario creado pero no se pudo asignar el rol' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    console.log('Admin user created successfully:', email);
 
     return new Response(
       JSON.stringify({ success: true, message: 'Usuario administrador creado exitosamente' }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
-    console.error('Unexpected error:', error);
+  } catch {
     return new Response(
       JSON.stringify({ error: 'Error interno del servidor' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
