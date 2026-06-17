@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,29 +50,6 @@ type RawNoticia = {
   fuenteNombre?: string;
 };
 
-type WeatherAPIResult = {
-  weather: WeatherData;
-  forecast: ForecastData;
-  location: string;
-  isFallback: boolean;
-};
-
-const CACHE_TTL_MS = 10 * 60 * 1000;
-
-type DataCache = {
-  timestamp: number;
-  weather: WeatherData;
-  forecast: ForecastData;
-  location: string;
-  isFallback: boolean;
-  news: NewsData[];
-};
-
-let dataCache: DataCache | null = null;
-
-const isCacheValid = () =>
-  dataCache !== null && Date.now() - dataCache.timestamp < CACHE_TTL_MS;
-
 // Datos de respaldo cuando la API no está disponible
 const FALLBACK_DATA = {
   weather: {
@@ -91,49 +69,6 @@ const FALLBACK_DATA = {
   location: "Córdoba Rural (datos estimados)"
 };
 
-const fetchWeatherFromAPI = async (): Promise<WeatherAPIResult> => {
-  try {
-    const { data, error } = await supabase.functions.invoke('weather', {
-      body: { lat: -32.1731, lon: -64.1147 }
-    });
-
-    if (error || data?.error) {
-      return { ...FALLBACK_DATA, isFallback: true };
-    }
-
-    return {
-      weather: data.weather as WeatherData,
-      forecast: data.forecast as ForecastData,
-      location: data.location as string,
-      isFallback: false,
-    };
-  } catch {
-    return { ...FALLBACK_DATA, isFallback: true };
-  }
-};
-
-const fetchNewsFromAPI = async (): Promise<NewsData[]> => {
-  try {
-    const { data, error } = await supabase.functions.invoke('agro-news');
-
-    if (error) {
-      throw error;
-    }
-
-    if (data?.noticias && data.noticias.length > 0) {
-      return data.noticias.slice(0, 3).map((noticia: RawNoticia) => ({
-        titulo: noticia.titulo,
-        resumen: noticia.resumen,
-        fuente: noticia.fuente,
-        fuenteNombre: noticia.fuenteNombre,
-      }));
-    }
-    return [];
-  } catch {
-    return [];
-  }
-};
-
 const WeatherIcon = ({ condicion, className }: { condicion: string; className?: string }) => {
   switch (condicion) {
     case "soleado":
@@ -148,66 +83,64 @@ const WeatherIcon = ({ condicion, className }: { condicion: string; className?: 
 };
 
 const RadarAgroClimatico = () => {
-  const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [forecast, setForecast] = useState<ForecastData | null>(null);
-  const [newsList, setNewsList] = useState<NewsData[]>([]);
   const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
-  const [location, setLocation] = useState<string>("");
-  const [lastUpdate, setLastUpdate] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [isFallback, setIsFallback] = useState(false);
 
-  const applyCache = useCallback((cache: DataCache) => {
-    setWeather(cache.weather);
-    setForecast(cache.forecast);
-    setLocation(cache.location);
-    setIsFallback(cache.isFallback);
-    if (cache.news.length > 0) setNewsList(cache.news);
-    setLastUpdate(new Date(cache.timestamp).toLocaleString("es-AR", {
-      day: "2-digit", month: "2-digit", year: "numeric",
-      hour: "2-digit", minute: "2-digit",
-    }));
-  }, []);
+  const weatherQuery = useQuery({
+    queryKey: ['weather'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('weather', {
+        body: { lat: -32.1731, lon: -64.1147 }
+      });
+      if (error) throw error;
+      return data as { weather: WeatherData; forecast: ForecastData; location: string };
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+    refetchInterval: 10 * 60 * 1000,
+  });
 
-  const loadData = useCallback(async (showToast = false, force = false) => {
-    if (!force && isCacheValid()) {
-      applyCache(dataCache!);
-      setLoading(false);
-      return;
-    }
+  const newsQuery = useQuery({
+    queryKey: ['agro-news'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('agro-news');
+      if (error) throw error;
+      if (data?.noticias && data.noticias.length > 0) {
+        return data.noticias.slice(0, 3).map((noticia: RawNoticia) => ({
+          titulo: noticia.titulo,
+          resumen: noticia.resumen,
+          fuente: noticia.fuente,
+          fuenteNombre: noticia.fuenteNombre,
+        })) as NewsData[];
+      }
+      return [] as NewsData[];
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
 
-    if (showToast) setRefreshing(true);
-    else setLoading(true);
+  // Derived state — fallback to FALLBACK_DATA in render, never in queryFn
+  const weather = weatherQuery.data?.weather ?? FALLBACK_DATA.weather;
+  const forecast = weatherQuery.data?.forecast ?? FALLBACK_DATA.forecast;
+  const location = weatherQuery.data?.location ?? "";
+  const isFallback = !!weatherQuery.error;
+  const newsList = newsQuery.data ?? [];
+  const loading = weatherQuery.isLoading;
+  const refreshing = weatherQuery.isFetching && !weatherQuery.isLoading;
 
-    try {
-      const [apiData, newsData] = await Promise.all([
-        fetchWeatherFromAPI(),
-        fetchNewsFromAPI(),
-      ]);
+  const lastUpdate = weatherQuery.dataUpdatedAt
+    ? new Date(weatherQuery.dataUpdatedAt).toLocaleString("es-AR", {
+        day: "2-digit", month: "2-digit", year: "numeric",
+        hour: "2-digit", minute: "2-digit",
+      })
+    : "";
 
-      const now = Date.now();
-      dataCache = {
-        timestamp: now,
-        weather: apiData.weather,
-        forecast: apiData.forecast,
-        location: apiData.location,
-        isFallback: apiData.isFallback,
-        news: newsData,
-      };
-
-      applyCache(dataCache);
-      if (showToast) toast.success("Datos actualizados");
-    } catch {
-      if (showToast) toast.error("Error al actualizar");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [applyCache]);
-
-  const handleRefresh = () => {
-    loadData(true, true);
+  const handleRefresh = async () => {
+    await Promise.all([weatherQuery.refetch(), newsQuery.refetch()]);
+    toast.success("Datos actualizados");
   };
 
   const nextNews = useCallback(() => {
@@ -217,12 +150,6 @@ const RadarAgroClimatico = () => {
   const prevNews = () => {
     setCurrentNewsIndex((prev) => (prev - 1 + newsList.length) % newsList.length);
   };
-
-  useEffect(() => {
-    loadData(false);
-    const interval = setInterval(() => loadData(false, true), CACHE_TTL_MS);
-    return () => clearInterval(interval);
-  }, [loadData]);
 
   useEffect(() => {
     if (newsList.length > 1) {
@@ -272,7 +199,7 @@ const RadarAgroClimatico = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {loading || !weather ? (
+              {loading ? (
                 <div className="animate-pulse space-y-3">
                   <div className="h-16 bg-muted rounded" />
                   <div className="h-4 bg-muted rounded w-3/4" />
@@ -322,7 +249,7 @@ const RadarAgroClimatico = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {loading || !forecast ? (
+              {loading ? (
                 <div className="animate-pulse space-y-3">
                   <div className="h-4 bg-muted rounded" />
                   <div className="h-4 bg-muted rounded" />
@@ -399,7 +326,7 @@ const RadarAgroClimatico = () => {
               </div>
             </CardHeader>
             <CardContent>
-              {loading || newsList.length === 0 ? (
+              {newsQuery.isLoading || newsList.length === 0 ? (
                 <div className="animate-pulse space-y-3">
                   <div className="h-4 bg-muted rounded" />
                   <div className="h-4 bg-muted rounded w-5/6" />

@@ -26,7 +26,7 @@ describe("contactSchema", () => {
       mensaje: "Mensaje largo suficiente",
     });
     expect(result.success).toBe(false);
-    expect(result.error?.errors[0].message).toBe("El email no es válido");
+    expect(result.error?.issues[0].message).toBe("El email no es válido");
   });
 
   it("rechaza nombre vacío", () => {
@@ -36,7 +36,7 @@ describe("contactSchema", () => {
       mensaje: "Mensaje largo suficiente",
     });
     expect(result.success).toBe(false);
-    expect(result.error?.errors[0].message).toBe("El nombre es obligatorio");
+    expect(result.error?.issues[0].message).toBe("El nombre es obligatorio");
   });
 
   it("rechaza mensaje muy corto", () => {
