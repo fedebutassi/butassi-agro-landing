@@ -1,4 +1,4 @@
-const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
+const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID ?? "G-ZQFFGQ3VRZ";
 
 const gtag = (...args: unknown[]) => {
   if (typeof window !== "undefined" && (window as Record<string, unknown>).gtag) {
