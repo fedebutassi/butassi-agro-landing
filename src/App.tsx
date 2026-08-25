@@ -36,7 +36,13 @@ const App = () => (
           <Sonner />
           <BrowserRouter basename={import.meta.env.BASE_URL}>
             <GoogleAnalytics />
-            <Suspense fallback={null}>
+            <Suspense
+              fallback={
+                <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Cargando">
+                  <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                </div>
+              }
+            >
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/productos" element={<Productos />} />

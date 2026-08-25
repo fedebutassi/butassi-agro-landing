@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logoImage from "@/assets/butassihnos.png?url";
+import logoImage from "@/assets/butassihnos.webp?url";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

@@ -42,7 +42,7 @@ const ContactSection = () => {
     if (formData.company?.trim()) return; // honeypot
 
     const result = contactSchema.safeParse(formData);
-    if (!result.success) { toast.error(result.error.errors[0].message); return; }
+    if (!result.success) { toast.error(result.error.issues[0].message); return; }
 
     setSending(true);
     try {
@@ -116,7 +116,7 @@ const ContactSection = () => {
 
             <div className="animate-fade-in-up" style={{ animationDelay: "150ms" }}>
               <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-                <input type="text" name="company" value={formData.company} onChange={handleChange} className="hidden" tabIndex={-1} autoComplete="off" />
+                <input type="text" name="company" value={formData.company} onChange={handleChange} className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
 
                 {[
                   { id: "nombre", label: "Nombre *", type: "text", placeholder: "Tu nombre completo", required: true },

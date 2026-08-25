@@ -1,7 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const CONTACT_EMAIL = Deno.env.get("CONTACT_EMAIL") ?? "federicobuta51@gmail.com";
+const CONTACT_EMAIL = Deno.env.get("CONTACT_EMAIL") ?? "butassihnos@gmail.com";
+
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "https://butassihnos.com.ar",
@@ -54,11 +57,11 @@ serve(async (req) => {
     const htmlBody = `
       <h2>Nueva consulta desde butassihnos.com.ar</h2>
       <table style="border-collapse:collapse;width:100%">
-        <tr><td style="padding:8px;font-weight:bold">Nombre</td><td style="padding:8px">${body.nombre}</td></tr>
-        <tr><td style="padding:8px;font-weight:bold">Email</td><td style="padding:8px">${body.email}</td></tr>
-        ${body.telefono ? `<tr><td style="padding:8px;font-weight:bold">Teléfono</td><td style="padding:8px">${body.telefono}</td></tr>` : ""}
-        ${body.tipoConsulta ? `<tr><td style="padding:8px;font-weight:bold">Tipo</td><td style="padding:8px">${body.tipoConsulta}</td></tr>` : ""}
-        <tr><td style="padding:8px;font-weight:bold;vertical-align:top">Mensaje</td><td style="padding:8px;white-space:pre-wrap">${body.mensaje}</td></tr>
+        <tr><td style="padding:8px;font-weight:bold">Nombre</td><td style="padding:8px">${escapeHtml(body.nombre)}</td></tr>
+        <tr><td style="padding:8px;font-weight:bold">Email</td><td style="padding:8px">${escapeHtml(body.email)}</td></tr>
+        ${body.telefono ? `<tr><td style="padding:8px;font-weight:bold">Teléfono</td><td style="padding:8px">${escapeHtml(body.telefono)}</td></tr>` : ""}
+        ${body.tipoConsulta ? `<tr><td style="padding:8px;font-weight:bold">Tipo</td><td style="padding:8px">${escapeHtml(body.tipoConsulta)}</td></tr>` : ""}
+        <tr><td style="padding:8px;font-weight:bold;vertical-align:top">Mensaje</td><td style="padding:8px;white-space:pre-wrap">${escapeHtml(body.mensaje)}</td></tr>
       </table>
     `;
 

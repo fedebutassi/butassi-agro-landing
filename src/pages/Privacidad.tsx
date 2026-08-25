@@ -9,7 +9,7 @@ const Privacidad = () => (
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4 max-w-3xl">
           <h1 className="text-4xl font-bold text-foreground mb-2">Política de Privacidad</h1>
-          <p className="text-muted-foreground mb-8">Última actualización: abril 2026</p>
+          <p className="text-muted-foreground mb-8">Última actualización: agosto 2026</p>
 
           <div className="prose prose-neutral max-w-none space-y-8 text-foreground">
 
@@ -17,7 +17,7 @@ const Privacidad = () => (
               <h2 className="text-2xl font-semibold mb-3">1. Responsable del tratamiento</h2>
               <p className="text-muted-foreground">
                 <strong>Butassi Hnos.</strong> — Corralito, Córdoba, Argentina.<br />
-                Contacto: <a href="mailto:federicobuta51@gmail.com" className="text-primary underline">federicobuta51@gmail.com</a>
+                Contacto: <a href="mailto:butassihnos@gmail.com" className="text-primary underline">butassihnos@gmail.com</a>
               </p>
             </section>
 
@@ -73,7 +73,7 @@ const Privacidad = () => (
               <h2 className="text-2xl font-semibold mb-3">8. Tus derechos</h2>
               <p className="text-muted-foreground">
                 Conforme a la Ley 25.326, tenés derecho a acceder, rectificar, suprimir y oponerte al tratamiento de tus datos personales.
-                Podés ejercerlos escribiendo a <a href="mailto:federicobuta51@gmail.com" className="text-primary underline">federicobuta51@gmail.com</a>.
+                Podés ejercerlos escribiendo a <a href="mailto:butassihnos@gmail.com" className="text-primary underline">butassihnos@gmail.com</a>.
               </p>
             </section>
 

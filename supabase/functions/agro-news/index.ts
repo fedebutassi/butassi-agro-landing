@@ -1,9 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+const ALLOWED_ORIGINS = ['https://butassihnos.com.ar', 'http://localhost:5173'];
+
+const getCorsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+});
 
 // RSS feeds de noticias agropecuarias argentinas
 const RSS_FEEDS = [
@@ -45,8 +47,6 @@ function stripHtml(html: string): string {
 
 async function fetchRSSFeed(url: string): Promise<NewsItem[]> {
   try {
-    console.log(`Fetching RSS from: ${url}`);
-    
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; NewsBot/1.0)',
@@ -60,8 +60,7 @@ async function fetchRSSFeed(url: string): Promise<NewsItem[]> {
     }
 
     const xml = await response.text();
-    console.log(`Received ${xml.length} bytes from ${url}`);
-    
+
     // Extraer items del RSS
     const items: NewsItem[] = [];
     const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
@@ -89,7 +88,6 @@ async function fetchRSSFeed(url: string): Promise<NewsItem[]> {
       }
     }
     
-    console.log(`Parsed ${items.length} items from ${url}`);
     return items;
   } catch (error) {
     console.error(`Error processing ${url}:`, error);
@@ -98,13 +96,13 @@ async function fetchRSSFeed(url: string): Promise<NewsItem[]> {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('Origin'));
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('Fetching agro news from RSS feeds...');
-    
     // Intentar obtener noticias de múltiples fuentes
     const allNews: NewsItem[] = [];
     
@@ -116,7 +114,6 @@ serve(async (req) => {
     
     // Si no hay noticias de RSS, usar noticias de respaldo
     if (allNews.length === 0) {
-      console.log('No RSS news found, using fallback');
       allNews.push({
         titulo: "El clima favorable impulsa las expectativas de cosecha en la región pampeana",
         resumen: "Las lluvias de las últimas semanas han mejorado significativamente las condiciones para los cultivos de verano en la zona núcleo agrícola.",
@@ -137,8 +134,6 @@ serve(async (req) => {
       noticias: allNews.slice(0, 5),
       timestamp: new Date().toISOString(),
     };
-
-    console.log(`Returning ${result.noticias.length} news items`);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

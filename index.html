@@ -6,8 +6,19 @@
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
 
+      // Consent Mode v2: denegado por defecto hasta que el usuario acepte cookies
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied'
+      });
+      if (localStorage.getItem('cookie_consent') === 'accepted') {
+        gtag('consent', 'update', { analytics_storage: 'granted' });
+      }
+
+      gtag('js', new Date());
       gtag('config', 'G-ZQFFGQ3VRZ');
     </script>
 
@@ -48,7 +59,7 @@
       "description": "Empresa familiar dedicada a la compra y venta de cereales, agroquímicos y servicios de apoyo agrícola.",
       "url": "https://butassihnos.com.ar",
       "telephone": "+5493571327923",
-      "email": "federicobuta51@gmail.com",
+      "email": "butassihnos@gmail.com",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "Corralito",

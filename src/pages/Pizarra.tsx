@@ -36,10 +36,10 @@ const Pizarra = () => {
           .getPublicUrl(files[0].name);
         setImageUrl(urlData.publicUrl);
       } else {
-        setImageUrl('/pizarra1112.png');
+        setImageUrl('/pizarra1112.webp');
       }
     } catch {
-      setImageUrl('/pizarra1112.png');
+      setImageUrl('/pizarra1112.webp');
     } finally {
       setImageLoading(false);
     }

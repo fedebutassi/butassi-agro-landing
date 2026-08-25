@@ -1,15 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+const ALLOWED_ORIGINS = ['https://butassihnos.com.ar', 'http://localhost:5173'];
+
+const getCorsHeaders = (origin: string | null) => ({
+  'Access-Control-Allow-Origin': origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+});
 
 // Coordenadas de la zona rural centro-sur de Córdoba (Río Tercero)
 const DEFAULT_LAT = -32.1731;
 const DEFAULT_LON = -64.1147;
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('Origin'));
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -25,8 +29,6 @@ serve(async (req) => {
 
     const { lat = DEFAULT_LAT, lon = DEFAULT_LON } = await req.json().catch(() => ({}));
 
-    console.log(`Fetching weather for lat: ${lat}, lon: ${lon}`);
-
     // Fetch current weather
     const weatherResponse = await fetch(
       `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=es`
@@ -39,7 +41,6 @@ serve(async (req) => {
     }
 
     const weatherData = await weatherResponse.json();
-    console.log('Weather data received:', JSON.stringify(weatherData));
 
     // Fetch forecast for precipitation probability
     const forecastResponse = await fetch(
@@ -49,7 +50,6 @@ serve(async (req) => {
     let forecastData = null;
     if (forecastResponse.ok) {
       forecastData = await forecastResponse.json();
-      console.log('Forecast data received');
     }
 
     // Map weather condition to our icons
@@ -101,8 +101,6 @@ serve(async (req) => {
       location: weatherData.name,
       timestamp: new Date().toISOString(),
     };
-
-    console.log('Returning result:', JSON.stringify(result));
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

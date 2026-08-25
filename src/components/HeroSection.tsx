@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import logoImage from "@/assets/butassihnos.png?url";
+import logoImage from "@/assets/butassihnos.webp?url";
 
 const HeroSection = () => {
   const scrollToContact = () => {
