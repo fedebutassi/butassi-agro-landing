@@ -10,7 +10,7 @@ Sitio web de **Butassi Hnos.**, empresa familiar de Corralito, Córdoba, dedicad
 - **UI:** Tailwind CSS + shadcn/ui
 - **Backend:** Supabase (auth, storage, Edge Functions)
 - **Email:** Resend (formulario de contacto)
-- **Hosting:** GitHub Pages (deploy automático via GitHub Actions)
+- **Hosting:** Vercel (deploy automático en cada push a `main`)
 - **Analytics:** Google Analytics 4 (opcional, requiere consentimiento)
 - **Error tracking:** Sentry (opcional)
 
@@ -65,26 +65,20 @@ Abre http://localhost:8080
 
 ## Deploy
 
-El deploy a producción es **automático** al hacer push a `main`:
+El deploy a producción lo hace **Vercel automáticamente** al hacer push a `main`.
+Cada branch/PR genera además un preview deploy con URL propia.
 
-```
-git push origin main
-# → GitHub Actions buildea y despliega en ~2-3 minutos
-```
+GitHub Actions (`.github/workflows/ci.yml`) corre en paralelo como validación:
+typecheck, lint, tests y build.
 
-Para staging, hacer push a `develop` genera un artefacto de build sin publicarlo automáticamente.
+El ruteo SPA está configurado en `vercel.json` (rewrites a `index.html`).
 
-### Variables en GitHub Actions
+### Variables de entorno
 
-Configurar en **Settings → Secrets and variables → Actions → Variables**:
+Configurar las variables `VITE_*` (ver `.env.example`) en **dos** lugares:
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
-- `VITE_SUPABASE_PROJECT_ID`
-- `VITE_CONTACT_EMAIL`
-- `VITE_WHATSAPP_NUMBER`
-- `VITE_GA_MEASUREMENT_ID` (opcional)
-- `VITE_SENTRY_DSN` (opcional)
+- **Vercel** → Project → Settings → Environment Variables (las que usa el sitio publicado)
+- **GitHub** → Settings → Secrets and variables → Actions → Variables (las usa el build de CI)
 
 ## Supabase
 
