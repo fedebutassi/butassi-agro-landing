@@ -6,13 +6,17 @@ const CONTACT_EMAIL = Deno.env.get("CONTACT_EMAIL") ?? "butassihnos@gmail.com";
 const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://butassihnos.com.ar",
+const ALLOWED_ORIGINS = ["https://www.butassihnos.com.ar", "https://butassihnos.com.ar", "http://localhost:5173"];
+
+const getCorsHeaders = (origin: string | null) => ({
+  "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
+});
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("Origin"));
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

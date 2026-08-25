@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const ALLOWED_ORIGINS = ['https://butassihnos.com.ar', 'http://localhost:5173'];
+const ALLOWED_ORIGINS = ['https://www.butassihnos.com.ar', 'https://butassihnos.com.ar', 'http://localhost:5173'];
 
 const getCorsHeaders = (origin: string | null) => ({
   'Access-Control-Allow-Origin': origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
