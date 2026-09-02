@@ -1,9 +1,11 @@
+import { Suspense, lazy } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import AboutSection from "@/components/AboutSection";
-import RadarAgroClimatico from "@/components/RadarAgroClimatico";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Footer from "@/components/Footer";
+
+const RadarAgroClimatico = lazy(() => import("@/components/RadarAgroClimatico"));
 
 const Index = () => {
   return (
@@ -11,7 +13,9 @@ const Index = () => {
       <Navbar />
       <main id="main-content">
         <HeroSection />
-        <RadarAgroClimatico />
+        <Suspense fallback={<div className="py-16 px-4 bg-gradient-to-b from-primary/5 via-accent/5 to-background" />}>
+          <RadarAgroClimatico />
+        </Suspense>
         <AboutSection />
       </main>
       <WhatsAppButton />

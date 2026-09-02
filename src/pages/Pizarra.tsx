@@ -5,12 +5,12 @@ import Footer from "@/components/Footer";
 import AdminLoginDialog from "@/components/AdminLoginDialog";
 import PizarraImageUploader from "@/components/PizarraImageUploader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/hooks/useAuth";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 const FETCH_TIMEOUT_MS = 10000;
 
-const Pizarra = () => {
+const PizarraContent = () => {
   const { isAdmin, loading } = useAuth();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
@@ -104,5 +104,11 @@ const Pizarra = () => {
     </div>
   );
 };
+
+const Pizarra = () => (
+  <AuthProvider>
+    <PizarraContent />
+  </AuthProvider>
+);
 
 export default Pizarra;
