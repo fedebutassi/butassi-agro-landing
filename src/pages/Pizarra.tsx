@@ -20,7 +20,7 @@ const PizarraContent = () => {
     try {
       const fetchPromise = supabase.storage
         .from('pizarra')
-        .list('', { limit: 1, sortBy: { column: 'created_at', order: 'desc' } });
+        .list('', { limit: 10, sortBy: { column: 'created_at', order: 'desc' } });
 
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('timeout')), FETCH_TIMEOUT_MS)
@@ -30,15 +30,19 @@ const PizarraContent = () => {
 
       if (error) throw error;
 
-      if (files && files.length > 0) {
+      const imageFiles = files?.filter(f => !f.name.startsWith('.')) ?? [];
+
+      if (imageFiles.length > 0) {
         const { data: urlData } = supabase.storage
           .from('pizarra')
-          .getPublicUrl(files[0].name);
-        setImageUrl(urlData.publicUrl);
+          .getPublicUrl(imageFiles[0].name);
+        setImageUrl(`${urlData.publicUrl}?t=${Date.now()}`);
       } else {
+        console.warn('[Pizarra] Bucket vacío — usando imagen fallback');
         setImageUrl('/pizarra1112.webp');
       }
-    } catch {
+    } catch (err) {
+      console.error('[Pizarra] Error al obtener imagen de Supabase:', err);
       setImageUrl('/pizarra1112.webp');
     } finally {
       setImageLoading(false);
