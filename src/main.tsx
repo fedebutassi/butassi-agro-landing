@@ -1,8 +1,11 @@
 import { createRoot } from "react-dom/client";
+import { initAnalytics } from "@/lib/analytics";
 import App from "./App.tsx";
 import "./index.css";
 
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
+
+initAnalytics();
 
 async function bootstrap() {
   if (SENTRY_DSN) {

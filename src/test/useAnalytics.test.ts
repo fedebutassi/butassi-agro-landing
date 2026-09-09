@@ -1,16 +1,29 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { trackEvent, trackPageView } from "@/hooks/useAnalytics";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { track } from "@/lib/analytics";
 
-describe("useAnalytics", () => {
+describe("analytics – track()", () => {
   beforeEach(() => {
     vi.stubGlobal("gtag", vi.fn());
+    // track() usa import.meta.env.DEV internamente; en vitest DEV === true
+    // por lo que loguea a consola en vez de llamar a gtag.
+    vi.spyOn(console, "debug").mockImplementation(() => {});
   });
 
-  it("trackEvent no lanza error cuando GA no está configurado", () => {
-    expect(() => trackEvent("test_event")).not.toThrow();
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
-  it("trackPageView no lanza error cuando GA no está configurado", () => {
-    expect(() => trackPageView("/test")).not.toThrow();
+  it("no lanza error aunque gtag no exista", () => {
+    vi.stubGlobal("gtag", undefined);
+    expect(() => track("test_event")).not.toThrow();
+  });
+
+  it("loguea a consola en modo dev", () => {
+    track("pizarra_view", { has_image: true });
+    expect(console.debug).toHaveBeenCalledWith(
+      "[analytics]",
+      "pizarra_view",
+      { has_image: true },
+    );
   });
 });

@@ -13,8 +13,7 @@ const CookieConsent = () => {
 
   const accept = () => {
     localStorage.setItem(STORAGE_KEY, "accepted");
-    const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
-    gtag?.("consent", "update", { analytics_storage: "granted" });
+    window.gtag?.("consent", "update", { analytics_storage: "granted" });
     setVisible(false);
   };
 
