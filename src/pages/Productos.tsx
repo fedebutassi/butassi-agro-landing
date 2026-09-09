@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Trash2, Mail, MessageCircle, Check } from "lucide-react";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics";
 
 type ProductItem = {
   nombre: string;
@@ -100,6 +101,7 @@ const Productos = () => {
   };
 
   const handleEnviarWhatsApp = () => {
+    track("contact", { method: "whatsapp", location: "productos" });
     const mensaje = encodeURIComponent(generarMensaje());
     window.open(`https://wa.me/${whatsappNumber}?text=${mensaje}`, "_blank");
   };

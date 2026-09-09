@@ -10,7 +10,7 @@ import {
 import { Mail, Phone, MapPin, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { trackEvent } from "@/hooks/useAnalytics";
+import { track } from "@/lib/analytics";
 
 const contactSchema = z.object({
   nombre: z.string().min(1, "El nombre es obligatorio"),
@@ -65,7 +65,8 @@ const ContactSection = () => {
       if (!data.success) throw new Error("Error en Web3Forms");
 
       toast.success("¡Mensaje enviado! Te respondemos a la brevedad.");
-      trackEvent("contact_form_submit", { tipo: formData.tipoConsulta || "general" });
+      // Mide "formulario enviado via Web3Forms", no un envío de email confirmado.
+      track("contact_form_submit", { tipo_consulta: formData.tipoConsulta || "general" });
       setFormData(EMPTY_FORM);
     } catch {
       toast.error("Hubo un error al enviar. Intentá de nuevo.");

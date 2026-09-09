@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from "@/components/Navbar";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Footer from "@/components/Footer";
@@ -7,6 +7,7 @@ import PizarraImageUploader from "@/components/PizarraImageUploader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { track } from "@/lib/analytics";
 
 const FETCH_TIMEOUT_MS = 10000;
 
@@ -49,9 +50,17 @@ const PizarraContent = () => {
     }
   };
 
+  const pizarraTracked = useRef(false);
+
   useEffect(() => {
     fetchLatestImage();
   }, []);
+
+  useEffect(() => {
+    if (imageLoading || pizarraTracked.current) return;
+    pizarraTracked.current = true;
+    track("pizarra_view", { has_image: !!imageUrl && imageUrl.startsWith("http") });
+  }, [imageLoading, imageUrl]);
 
   return (
     <div className="min-h-screen">

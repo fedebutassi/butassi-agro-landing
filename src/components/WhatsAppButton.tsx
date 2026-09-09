@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { MessageCircle, X } from "lucide-react";
+import { track } from "@/lib/analytics";
 
 const TOOLTIP_INITIAL_DELAY_MS = 3000;
 const TOOLTIP_DISPLAY_DURATION_MS = 5000;
@@ -63,6 +64,7 @@ const WhatsAppButton = () => {
         href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => track("contact", { method: "whatsapp", location: "float" })}
         className="block bg-[#25D366] text-white rounded-full p-4 shadow-2xl hover:scale-110 transition-transform duration-300 group"
         aria-label="Contactar por WhatsApp"
       >
