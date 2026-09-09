@@ -8,8 +8,8 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-vi.mock("@/hooks/useAnalytics", () => ({
-  trackEvent: vi.fn(),
+vi.mock("@/lib/analytics", () => ({
+  track: vi.fn(),
 }));
 
 const mockFetch = vi.fn();
