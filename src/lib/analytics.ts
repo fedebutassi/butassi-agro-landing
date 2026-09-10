@@ -1,9 +1,8 @@
 // src/lib/analytics.ts
 // Capa de analytics centralizada para GA4.
-// Se carga dinámicamente desde import.meta.env.VITE_GA_MEASUREMENT_ID.
-// Si la variable no está definida, el módulo no hace nada (safe para dev local).
+// GA_MEASUREMENT_ID se importa de site.ts (hardcoded, no depende de env vars).
 
-const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
+import { GA_MEASUREMENT_ID } from "@/lib/site";
 
 /** True cuando el visitante es un bot, headless browser o Lighthouse. */
 function isBot(): boolean {
@@ -18,24 +17,27 @@ function isBot(): boolean {
 function checkInternal(): boolean {
   try {
     if (new URLSearchParams(window.location.search).get("internal") === "1") {
-      localStorage.setItem("analytics_internal", "1");
+      localStorage.setItem("bh_internal", "1");
     }
-    return localStorage.getItem("analytics_internal") === "1";
+    return localStorage.getItem("bh_internal") === "1";
   } catch {
     return false;
   }
+}
+
+/** Devuelve true si la URL trae ?debug_mode=1. */
+function checkDebugMode(): boolean {
+  return new URLSearchParams(window.location.search).get("debug_mode") === "1";
 }
 
 /**
  * Carga el script de GA4 y configura el tracker.
  * Llamar una vez al arranque (en main.tsx, antes del render).
  *
- * No hace nada si:
- * - VITE_GA_MEASUREMENT_ID no está definido
- * - El visitante es un bot / headless browser
+ * No hace nada si el visitante es un bot / headless browser.
  */
 export function initAnalytics(): void {
-  if (!GA_ID || isBot()) return;
+  if (isBot()) return;
 
   window.dataLayer = window.dataLayer || [];
   // Stub estándar de gtag: pushea los argumentos a dataLayer para que
@@ -61,16 +63,18 @@ export function initAnalytics(): void {
   window.gtag("js", new Date());
 
   const isInternal = checkInternal();
-  window.gtag("config", GA_ID, {
+  const isDebug = checkDebugMode();
+  window.gtag("config", GA_MEASUREMENT_ID, {
     // send_page_view queda en default (true).
     // La medición mejorada de GA4 ya captura cambios de historial (SPA).
     // NO implementar page_view manual — se duplica.
     ...(isInternal ? { traffic_type: "internal" } : {}),
+    ...(isDebug ? { debug_mode: true } : {}),
   });
 
   const script = document.createElement("script");
   script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
   document.head.appendChild(script);
 }
 
