@@ -45,6 +45,10 @@ export function usePageMeta({ title, description, path, noindex }: PageMeta): vo
       document.head.appendChild(robotsMeta);
     }
 
+    // Signal para prerender: los meta tags están listos
+    window.__META_READY__ = true;
+    document.dispatchEvent(new Event("meta-ready"));
+
     return () => {
       if (robotsMeta?.parentNode) {
         robotsMeta.parentNode.removeChild(robotsMeta);

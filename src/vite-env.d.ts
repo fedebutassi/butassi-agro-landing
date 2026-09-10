@@ -20,6 +20,8 @@ interface ImportMeta {
 
 // Tipado de gtag / dataLayer para GA4 (cargado dinámicamente por src/lib/analytics.ts)
 interface Window {
+  /** Signal del prerender: true cuando usePageMeta terminó de setear el head. */
+  __META_READY__?: boolean;
   dataLayer?: unknown[];
   gtag?: {
     (command: "config", targetId: string, config?: Record<string, unknown>): void;
