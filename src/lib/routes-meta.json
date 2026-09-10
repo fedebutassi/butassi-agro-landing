@@ -1,0 +1,28 @@
+{
+  "/": {
+    "title": "Butassi Hnos. | Agroquímicos y Cereales - Corralito, Córdoba",
+    "description": "Butassi Hnos. — empresa familiar de Corralito, Córdoba. Compra y venta de cereales, agroquímicos y servicios de apoyo agrícola. Más de 20 años de trayectoria."
+  },
+  "/productos": {
+    "title": "Cereales y agroquímicos | Butassi Hnos. Corralito",
+    "description": "Consultá precios y solicitá cotización de cereales y agroquímicos en Butassi Hnos., Corralito, Córdoba."
+  },
+  "/pizarra": {
+    "title": "Pizarra de precios de cereales | Butassi Hnos. Corralito",
+    "description": "Pizarra actualizada con precios de cereales del mercado de Rosario, disponible en Butassi Hnos., Corralito, Córdoba."
+  },
+  "/contacto": {
+    "title": "Contacto | Butassi Hnos. Corralito, Córdoba",
+    "description": "Envianos tu consulta o contactanos por WhatsApp, teléfono o email desde Corralito, Córdoba."
+  },
+  "/privacidad": {
+    "title": "Política de privacidad | Butassi Hnos.",
+    "description": "Política de privacidad y uso de datos personales de Butassi Hnos.",
+    "noindex": true
+  },
+  "/404": {
+    "title": "Página no encontrada | Butassi Hnos.",
+    "description": "La página que buscás no existe o fue movida.",
+    "noindex": true
+  }
+}

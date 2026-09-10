@@ -24,8 +24,20 @@ const DIST = join(ROOT, "dist");
 const PORT = 45_678;
 const TIMEOUT_MS = 30_000;
 
+// Fuente única de verdad: el mismo JSON que usa usePageMeta en runtime.
+const ROUTES_META = JSON.parse(
+  readFileSync(join(ROOT, "src/lib/routes-meta.json"), "utf-8"),
+);
+
+// Leer SITE_URL desde site.ts para no duplicar el valor.
+const SITE_URL = readFileSync(join(ROOT, "src/lib/site.ts"), "utf-8")
+  .match(/SITE_URL\s*=\s*"([^"]+)"/)?.[1];
+if (!SITE_URL) throw new Error("No se pudo leer SITE_URL de src/lib/site.ts");
+
+const OG_IMAGE = `${SITE_URL}/og-image.jpg`;
+
 /** Rutas a prerenderizar. /404 se guarda como dist/404.html (Vercel la sirve como 404 custom). */
-const ROUTES = ["/", "/productos", "/pizarra", "/contacto", "/privacidad", "/404"];
+const ROUTES = Object.keys(ROUTES_META);
 
 const MIME = /** @type {Record<string,string>} */ ({
   ".html": "text/html; charset=utf-8",
@@ -77,6 +89,56 @@ function startServer() {
 
     server.listen(PORT, "127.0.0.1", () => resolve(server));
   });
+}
+
+/**
+ * Inyecta/reemplaza tags del <head> con los valores del config.
+ * Garantiza que el HTML final tenga los meta correctos aunque el runtime
+ * no los haya seteado (ej: render falló por falta de datos externos).
+ */
+function injectHead(html, route) {
+  const meta = ROUTES_META[route];
+  if (!meta) return html;
+
+  const canonical = `${SITE_URL}${route === "/" ? "/" : route}`;
+
+  // title
+  html = html.replace(/<title>[^<]*<\/title>/, `<title>${meta.title}</title>`);
+
+  // meta description
+  html = html.replace(
+    /<meta name="description" content="[^"]*"/,
+    `<meta name="description" content="${meta.description}"`,
+  );
+
+  // canonical
+  html = html.replace(
+    /<link rel="canonical" href="[^"]*"/,
+    `<link rel="canonical" href="${canonical}"`,
+  );
+
+  // og:url
+  html = html.replace(
+    /<meta property="og:url" content="[^"]*"/,
+    `<meta property="og:url" content="${canonical}"`,
+  );
+
+  // og:image (mismo para todas las rutas)
+  html = html.replace(
+    /<meta property="og:image" content="[^"]*"/,
+    `<meta property="og:image" content="${OG_IMAGE}"`,
+  );
+
+  // robots noindex
+  if (meta.noindex) {
+    if (!html.includes('name="robots"')) {
+      html = html.replace("</head>", `<meta name="robots" content="noindex">\n</head>`);
+    }
+  } else {
+    html = html.replace(/<meta name="robots" content="[^"]*">\n?/g, "");
+  }
+
+  return html;
 }
 
 /**
@@ -153,7 +215,8 @@ async function prerender() {
         await new Promise((r) => setTimeout(r, 3_000));
       }
 
-      const html = await page.content();
+      // Capturar HTML y forzar los meta tags del config (determinístico)
+      const html = injectHead(await page.content(), route);
 
       if (route === "/404") {
         writeFileSync(join(DIST, "404.html"), html);

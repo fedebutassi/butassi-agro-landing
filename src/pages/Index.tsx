@@ -9,11 +9,7 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 const RadarAgroClimatico = lazy(() => import("@/components/RadarAgroClimatico"));
 
 const Index = () => {
-  usePageMeta({
-    title: "Butassi Hnos. | Agroquímicos y Cereales - Corralito, Córdoba",
-    description: "Butassi Hnos. — empresa familiar de Corralito, Córdoba. Compra y venta de cereales, agroquímicos y servicios de apoyo agrícola. Más de 20 años de trayectoria.",
-    path: "/",
-  });
+  usePageMeta("/");
 
   return (
     <div className="min-h-screen">

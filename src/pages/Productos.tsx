@@ -40,11 +40,7 @@ const clienteSchema = z.object({
 );
 
 const Productos = () => {
-  usePageMeta({
-    title: "Cereales y agroquímicos | Butassi Hnos. Corralito",
-    description: "Consultá precios y solicitá cotización de cereales y agroquímicos en Butassi Hnos., Corralito, Córdoba.",
-    path: "/productos",
-  });
+  usePageMeta("/productos");
 
   const [productos, setProductos] = useState<ProductItem[]>([
     { nombre: "", cantidad: "", unidad: "lts" },

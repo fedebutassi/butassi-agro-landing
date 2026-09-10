@@ -4,12 +4,7 @@ import { Link } from "react-router-dom";
 import { usePageMeta } from "@/hooks/usePageMeta";
 
 const Privacidad = () => {
-  usePageMeta({
-    title: "Política de privacidad | Butassi Hnos.",
-    description: "Política de privacidad y uso de datos personales de Butassi Hnos.",
-    path: "/privacidad",
-    noindex: true,
-  });
+  usePageMeta("/privacidad");
 
   return (
   <div className="min-h-screen">

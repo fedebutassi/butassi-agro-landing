@@ -1,12 +1,10 @@
 import { useEffect } from "react";
 import { SITE_URL } from "@/lib/site";
+import routesMeta from "@/lib/routes-meta.json";
 
-interface PageMeta {
-  title: string;
-  description: string;
-  path: string;
-  noindex?: boolean;
-}
+type RoutesMeta = Record<string, { title: string; description: string; noindex?: boolean }>;
+
+const META = routesMeta as RoutesMeta;
 
 function setMeta(selector: string, attr: string, key: string, content: string): void {
   let el = document.querySelector<HTMLMetaElement>(selector);
@@ -28,17 +26,21 @@ function setCanonical(href: string): void {
   el.href = href;
 }
 
-export function usePageMeta({ title, description, path, noindex }: PageMeta): void {
+export function usePageMeta(path: string): void {
+  const meta = META[path];
+
   useEffect(() => {
-    document.title = title;
+    if (!meta) return;
+
+    document.title = meta.title;
 
     const url = `${SITE_URL}${path}`;
-    setMeta('meta[name="description"]', "name", "description", description);
+    setMeta('meta[name="description"]', "name", "description", meta.description);
     setCanonical(url);
     setMeta('meta[property="og:url"]', "property", "og:url", url);
 
     let robotsMeta: HTMLMetaElement | null = null;
-    if (noindex) {
+    if (meta.noindex) {
       robotsMeta = document.createElement("meta");
       robotsMeta.name = "robots";
       robotsMeta.content = "noindex";
@@ -54,5 +56,5 @@ export function usePageMeta({ title, description, path, noindex }: PageMeta): vo
         robotsMeta.parentNode.removeChild(robotsMeta);
       }
     };
-  }, [title, description, path, noindex]);
+  }, [path, meta]);
 }

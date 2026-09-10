@@ -120,11 +120,7 @@ const PizarraContent = () => {
 };
 
 const Pizarra = () => {
-  usePageMeta({
-    title: "Pizarra de precios de cereales | Butassi Hnos. Corralito",
-    description: "Pizarra actualizada con precios de cereales del mercado de Rosario, disponible en Butassi Hnos., Corralito, Córdoba.",
-    path: "/pizarra",
-  });
+  usePageMeta("/pizarra");
 
   return (
     <AuthProvider>

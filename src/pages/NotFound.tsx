@@ -3,12 +3,7 @@ import { Link } from "react-router-dom";
 import { usePageMeta } from "@/hooks/usePageMeta";
 
 export default function NotFound() {
-  usePageMeta({
-    title: "Página no encontrada | Butassi Hnos.",
-    description: "La página que buscás no existe o fue movida.",
-    path: "/404",
-    noindex: true,
-  });
+  usePageMeta("/404");
 
   return (
     <main className="min-h-[70vh] flex items-center justify-center px-6">
