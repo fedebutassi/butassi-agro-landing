@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /pizarra
 
-Sitemap: https://butassihnos.com.ar/sitemap.xml
+Sitemap: https://www.butassihnos.com.ar/sitemap.xml

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import Navbar from "@/components/Navbar";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Footer from "@/components/Footer";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import AdminLoginDialog from "@/components/AdminLoginDialog";
 import PizarraImageUploader from "@/components/PizarraImageUploader";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +13,12 @@ import { track } from "@/lib/analytics";
 const FETCH_TIMEOUT_MS = 10000;
 
 const PizarraContent = () => {
+  usePageMeta({
+    title: "Pizarra de precios de cereales | Butassi Hnos. Corralito",
+    description: "Pizarra actualizada con precios de cereales del mercado de Rosario, disponible en Butassi Hnos., Corralito, Córdoba.",
+    path: "/pizarra",
+  });
+
   const { isAdmin, loading } = useAuth();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
