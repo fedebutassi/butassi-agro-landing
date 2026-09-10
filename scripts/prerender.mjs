@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
 const PORT = 45_678;
-const TIMEOUT_MS = 15_000;
+const TIMEOUT_MS = 30_000;
 
 /** Rutas a prerenderizar. /404 se guarda como dist/404.html (Vercel la sirve como 404 custom). */
 const ROUTES = ["/", "/productos", "/pizarra", "/contacto", "/privacidad", "/404"];
@@ -115,34 +115,43 @@ async function prerender() {
 
   const browser = await launchBrowser();
 
+  const LOCAL_ORIGIN = `http://127.0.0.1:${PORT}`;
+
   try {
     for (const route of ROUTES) {
       const page = await browser.newPage();
 
-      // Bloquear requests a terceros innecesarios para el prerender
+      // Allowlist: solo requests al servidor local. Abortar TODO lo externo
+      // (Supabase, GA, Sentry, Google Fonts, etc.) para que el prerender sea
+      // determinístico y no dependa de red.
       await page.setRequestInterception(true);
       page.on("request", (req) => {
-        const url = req.url();
-        if (
-          url.includes("googletagmanager.com") ||
-          url.includes("google-analytics.com") ||
-          url.includes("sentry.io")
-        ) {
-          req.abort();
-        } else {
+        if (req.url().startsWith(LOCAL_ORIGIN)) {
           req.continue();
+        } else {
+          req.abort();
         }
       });
 
-      await page.goto(`http://127.0.0.1:${PORT}${route}`, {
-        waitUntil: "networkidle2",
+      // domcontentloaded basta: los module scripts ya ejecutaron y React montó.
+      // Los lazy chunks cargan de localhost (inmediato).
+      await page.goto(`${LOCAL_ORIGIN}${route}`, {
+        waitUntil: "domcontentloaded",
         timeout: TIMEOUT_MS,
       });
 
       // Esperar a que usePageMeta setee __META_READY__
-      await page.waitForFunction(() => window.__META_READY__ === true, {
-        timeout: TIMEOUT_MS,
-      });
+      // Fallback: si no llega, capturar igual (mejor HTML parcial que build roto)
+      try {
+        await page.waitForFunction(() => window.__META_READY__ === true, {
+          timeout: TIMEOUT_MS,
+        });
+      } catch {
+        console.warn(
+          `[prerender] WARN: __META_READY__ no llego para ${route}, capturando con delay`,
+        );
+        await new Promise((r) => setTimeout(r, 3_000));
+      }
 
       const html = await page.content();
 
