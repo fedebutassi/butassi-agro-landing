@@ -4,10 +4,17 @@ import HeroSection from "@/components/HeroSection";
 import AboutSection from "@/components/AboutSection";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Footer from "@/components/Footer";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 const RadarAgroClimatico = lazy(() => import("@/components/RadarAgroClimatico"));
 
 const Index = () => {
+  usePageMeta({
+    title: "Butassi Hnos. | Agroquímicos y Cereales - Corralito, Córdoba",
+    description: "Butassi Hnos. — empresa familiar de Corralito, Córdoba. Compra y venta de cereales, agroquímicos y servicios de apoyo agrícola. Más de 20 años de trayectoria.",
+    path: "/",
+  });
+
   return (
     <div className="min-h-screen">
       <Navbar />

@@ -1,8 +1,17 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
-const Privacidad = () => (
+const Privacidad = () => {
+  usePageMeta({
+    title: "Política de privacidad | Butassi Hnos.",
+    description: "Política de privacidad y uso de datos personales de Butassi Hnos.",
+    path: "/privacidad",
+    noindex: true,
+  });
+
+  return (
   <div className="min-h-screen">
     <Navbar />
     <main className="pt-20">
@@ -87,6 +96,7 @@ const Privacidad = () => (
     </main>
     <Footer />
   </div>
-);
+  );
+};
 
 export default Privacidad;
