@@ -7,7 +7,7 @@
 // Cada ruta se navega en Chromium, se espera a que usePageMeta setee
 // window.__META_READY__, y se captura el HTML resultante.
 
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
 import { createServer } from "node:http";
 import {
   readFileSync,
@@ -79,14 +79,41 @@ function startServer() {
   });
 }
 
+/**
+ * Lanza Chromium adaptándose al entorno:
+ * - Linux (Vercel): usa @sparticuz/chromium (binario incluido en el paquete)
+ * - macOS/otro (local): usa Chrome del sistema o CHROME_PATH
+ */
+async function launchBrowser() {
+  if (process.platform === "linux") {
+    const chromium = (await import("@sparticuz/chromium")).default;
+    chromium.setGraphicsMode = false;
+    return puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: "shell",
+    });
+  }
+
+  // macOS / Windows: Chrome del sistema
+  const executablePath =
+    process.env.CHROME_PATH ||
+    (process.platform === "darwin"
+      ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe");
+
+  return puppeteer.launch({
+    executablePath,
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
+  });
+}
+
 async function prerender() {
   console.log("[prerender] Iniciando...");
   const server = await startServer();
 
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
-  });
+  const browser = await launchBrowser();
 
   try {
     for (const route of ROUTES) {
